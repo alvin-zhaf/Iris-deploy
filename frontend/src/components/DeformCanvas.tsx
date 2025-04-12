@@ -7,7 +7,6 @@ export default function DeformCanvas() {
     height: window.innerHeight
   });
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setDimensions({
