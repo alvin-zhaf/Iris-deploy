@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { ScrollArea } from "../components/ScrollArea";
 import logo from "../assets/logo.svg";
 
-export default function AgentsDashboard() {
+export default function Dashboard() {
   const [agents, setAgents] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [focusedAgentIndex, setFocusedAgentIndex] = useState<number>(-1);

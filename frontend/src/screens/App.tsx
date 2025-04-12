@@ -1,10 +1,4 @@
 import { useState } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
 import { Button } from "../components/Button";
 import DeformCanvas from "../components/DeformCanvas";
 import { Globe, LayoutDashboard, Wallet } from "lucide-react";
@@ -16,7 +10,8 @@ import {
 } from "../components/Tooltip";
 import Logo from "../assets/logo.svg";
 import styled from "styled-components";
-
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import Dashboard from "./Dashboard";
 
 function HomeScreen({
   walletAddress,
@@ -77,7 +72,7 @@ function HomeScreen({
             <Styled.PromptInput type="text" placeholder="Ask anything" />
           </Styled.PromptBar>
           <Styled.ButtonRow>
-            <Styled.ConnectButton onClick={() => navigate("/agents")}>
+            <Styled.ConnectButton onClick={() => navigate("/dashboard")}>
               <LayoutDashboard size={18} />
               Dashboard
             </Styled.ConnectButton>
@@ -127,6 +122,7 @@ function App() {
             />
           }
         />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   );
