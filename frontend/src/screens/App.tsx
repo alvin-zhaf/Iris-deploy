@@ -148,7 +148,7 @@ function App() {
 
     ws.onopen = () => {
       console.log("WebSocket connection opened for sending message");
-      ws.send(message);
+      ws.send(JSON.stringify({ input: message, wallet: walletAddress }));
       console.log(`Message sent: ${message}`);
 
       // Set up a handler for any response that might come back

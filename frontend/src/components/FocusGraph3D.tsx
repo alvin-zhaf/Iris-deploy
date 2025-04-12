@@ -2,7 +2,9 @@ import React, { useRef, useCallback, useEffect, useState } from 'react';
 import ForceGraph3D  from 'react-force-graph-3d';
 import * as THREE from 'three';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import { CSS2DRenderer, CSS2DObject } from 'https://esm.sh/three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Vector2 } from 'three';
+import { hashString } from 'react-hash-string';
 
 const FocusGraph3D: React.FC = () => {
   const fgRef = useRef<any>(null);
@@ -472,6 +474,9 @@ const FocusGraph3D: React.FC = () => {
 
   if (!graphData) return <div>Loading...</div>;
 
+  const GROUPS = 2;
+  const extraRenderers = [new CSS2DRenderer()];
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {showImage && (
@@ -494,11 +499,25 @@ const FocusGraph3D: React.FC = () => {
         ref={fgRef}
         graphData={graphData}
         nodeLabel="id"
-        nodeAutoColorBy="group"
+        extraRenderers={extraRenderers}
+        nodeAutoColorBy={d => `${hashString(`${d.id}`)%GROUPS}`}
+        linkAutoColorBy={d => `${hashString(`${d.source}`)%GROUPS}`}
         onNodeClick={handleClick}
         onBackgroundClick={handleBackgroundClick}
         onNodeDragEnd={handlePanInteraction}
         backgroundColor="rgba(0,0,0,0)" // Transparent background so the starfield shows up.
+        nodeThreeObject={node => {
+          const nodeEl = document.createElement('div');
+          nodeEl.textContent = node.id;
+          nodeEl.style.color = node.color;
+          nodeEl.style.fontSize = '12px';
+          nodeEl.style.padding = '1px 4px';
+          nodeEl.style.borderRadius = '4px';
+          nodeEl.style.backgroundColor = 'rgba(0,0,0,0.5)';
+          nodeEl.style.userSelect = 'none';
+          return new CSS2DObject(nodeEl);
+        }}
+        nodeThreeObjectExtend={true}
       />
     </div>
   );
