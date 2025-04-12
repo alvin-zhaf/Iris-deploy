@@ -104,32 +104,43 @@ const ControlButton = styled.button`
 
 const AgentListContainer = styled.div`
   width: 80%;
-  margin-top: 140px; /* Leave space for header and toggle */
+  margin-top: 140px; /* Increased margin to avoid being stuck at the top */
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(250px, 1fr)
+  ); /* Grid layout */
+  gap: 1rem; /* Spacing between cards */
+  padding-bottom: 2rem; /* Add some bottom padding */
 `;
 
-const AgentCard = styled.div`
-  background-color: #fff;
+const AgentCard = styled.div<{ isExpanded: boolean }>`
+  background-color: #27272a;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  transition: transform 0.3s ease;
+  padding: 1.5rem; /* Increased padding */
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    transform: scale(1.02);
+    transform: scale(1.05);
+    border: 2px solid #d8b4fe; /* Pink border highlight on hover */
   }
+
+  transform: ${(props) =>
+    props.isExpanded ? "scale(1.05)" : "scale(1)"}; /* Scale on click */
 `;
 
 const AgentTitle = styled.h3`
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: #d8b4fe;
 `;
 
 const AgentDescription = styled.p`
-  font-size: 1rem;
+  font-size: 0.9rem;
   margin-bottom: 1rem;
-  color: #555;
+  color: #fff;
 `;
 
 const PerformanceMetrics = styled.div`
@@ -206,18 +217,27 @@ const SwitchCircle = styled.div<{ active: boolean }>`
 const agentsData = [
   {
     name: "Agent Alpha",
+    owner: "John Doe",
     description: "An advanced AI assistant for handling complex tasks.",
+    timeCreated: "2023-01-15",
+    freqUsed: "1500 times",
     performance: { speed: "90%", accuracy: "85%" },
   },
   {
     name: "Agent Beta",
+    owner: "Jane Smith",
     description:
       "A reliable agent for customer support with fast response time.",
+    timeCreated: "2023-02-20",
+    freqUsed: "1000 times",
     performance: { speed: "80%", accuracy: "90%" },
   },
   {
     name: "Agent Gamma",
+    owner: "Michael Lee",
     description: "A highly specialized agent for data analysis.",
+    timeCreated: "2023-03-10",
+    freqUsed: "1200 times",
     performance: { speed: "70%", accuracy: "95%" },
   },
 ];
@@ -227,6 +247,10 @@ const agentsData = [
 const Agents: React.FC = () => {
   // false: List view, true: Graph (3D universe) view.
   const [isDetailView, setIsDetailView] = useState(false);
+  // Track which agent card is expanded
+  const [expandedAgentIndex, setExpandedAgentIndex] = useState<number | null>(
+    null
+  );
 
   const toggleView = () => {
     setIsDetailView((prev) => !prev);
@@ -238,6 +262,10 @@ const Agents: React.FC = () => {
 
   const goToDashboard = () => {
     window.location.href = "/dashboard";
+  };
+
+  const toggleAgentExpanded = (index: number) => {
+    setExpandedAgentIndex(expandedAgentIndex === index ? null : index);
   };
 
   return (
@@ -270,16 +298,26 @@ const Agents: React.FC = () => {
       {!isDetailView && (
         <AgentListContainer>
           {agentsData.map((agent, index) => (
-            <AgentCard key={index}>
+            <AgentCard
+              key={index}
+              isExpanded={expandedAgentIndex === index}
+              onClick={() => toggleAgentExpanded(index)}
+            >
               <AgentTitle>{agent.name}</AgentTitle>
               <AgentDescription>{agent.description}</AgentDescription>
-              {isDetailView && (
+              {expandedAgentIndex === index && (
                 <PerformanceMetrics>
                   <p>
                     <strong>Speed:</strong> {agent.performance.speed}
                   </p>
                   <p>
                     <strong>Accuracy:</strong> {agent.performance.accuracy}
+                  </p>
+                  <p>
+                    <strong>Created:</strong> {agent.timeCreated}
+                  </p>
+                  <p>
+                    <strong>Used:</strong> {agent.freqUsed}
                   </p>
                 </PerformanceMetrics>
               )}

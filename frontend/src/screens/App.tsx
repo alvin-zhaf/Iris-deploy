@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Button } from "../components/Button";
 import DeformCanvas from "../components/DeformCanvas";
-import { Globe, LayoutDashboard, Wallet, Bot, Send } from "lucide-react";
+import { Globe, LayoutDashboard, Wallet, Orbit, Send } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -118,9 +118,9 @@ function HomeScreen({
               <LayoutDashboard size={18} />
               Dashboard
             </Styled.ConnectButton>
-            <Styled.ConnectButton onClick={() => navigate("/agents")}>
-              <Bot size={18} />
-              Agent
+            <Styled.ConnectButton onClick={() => navigate("/universe")}>
+              <Orbit size={18} />
+              Universe
             </Styled.ConnectButton>
             <Styled.ConnectButton onClick={() => navigate("/marketplace")}>
               <Globe size={18} />
@@ -142,7 +142,7 @@ function App() {
 
     ws.onopen = () => {
       console.log("WebSocket connection opened for sending message");
-      ws.send(message);
+      ws.send(JSON.stringify({ input: message, wallet: walletAddress }));
       console.log(`Message sent: ${message}`);
 
       // Set up a handler for any response that might come back
@@ -195,7 +195,7 @@ function App() {
           }
         />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/agents" element={<Agents />} />
+        <Route path="/universe" element={<Agents />} />
       </Routes>
     </BrowserRouter>
   );
@@ -339,7 +339,7 @@ export const Styled = {
     gap: 0.5rem;
     height: 2.5rem;
     padding: 0 1rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
     border-radius: 9999px;
     color: #ffffff;
