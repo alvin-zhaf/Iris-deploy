@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { BarChart, List } from "lucide-react"; // Example icons for "Graph" & "List"
+
+// -------------------- STYLED COMPONENTS -------------------- //
 
 // Basic styling for the page
 const Container = styled.div`
@@ -47,24 +50,67 @@ const PerformanceMetrics = styled.div`
   margin-bottom: 1rem;
 `;
 
-const ToggleButton = styled.button`
-  background-color: #7f56d9;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 25px;
-  font-size: 1rem;
+// -------------------- THE CUSTOM SWITCH -------------------- //
+
+/**
+ * SwitchContainer: a horizontal container with two labels/icons.
+ * SwitchLabel: optional text next to each icon (e.g., "List" and "Graph").
+ * SwitchSlider: the pill-shaped background.
+ * SwitchCircle: the circular "thumb" that slides left/right.
+ */
+const SwitchContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0; /* Spacing around the switch */
+`;
+
+const SwitchSlider = styled.label<{ isDetailView: boolean }>`
+  position: relative;
+  width: 110px;
+  height: 50px;
+  background-color: ${({ isDetailView }) =>
+    isDetailView ? "#7f56d9" : "#44444a"};
+  border-radius: 999px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  display: inline-block;
+  margin: 0 1rem;
+`;
 
-  &:hover {
-    background-color: #9b66ff;
-  }
+const SwitchCircle = styled.span<{ isDetailView: boolean }>`
+  position: absolute;
+  top: 4px;
+  left: ${({ isDetailView }) => (isDetailView ? "58px" : "4px")};
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  transition: left 0.3s ease;
+`;
 
-  &:active {
-    transform: scale(0.98);
+// Hidden checkbox for accessibility
+const HiddenCheckbox = styled.input.attrs({ type: "checkbox" })`
+  display: none;
+`;
+
+const SwitchLabel = styled.span`
+  color: #fff;
+  font-size: 0.9rem;
+  user-select: none;
+  margin-left: 0.5rem;
+`;
+
+const IconWrapper = styled.div`
+  display: flex;
+  align-items: center;
+
+  svg {
+    stroke: #fff;
+    margin-right: 0.3rem;
   }
 `;
+
+// -------------------- MOCK DATA -------------------- //
 
 const agentsData = [
   {
@@ -85,19 +131,43 @@ const agentsData = [
   },
 ];
 
+// -------------------- MAIN COMPONENT -------------------- //
+
 const Agents: React.FC = () => {
   const [isDetailView, setIsDetailView] = useState(false);
 
+  // Toggle between list and detail (graph) view
   const toggleView = () => {
     setIsDetailView(!isDetailView);
   };
 
   return (
     <Container>
-      <h1>Available Agents</h1>
-      <ToggleButton onClick={toggleView}>
-        {isDetailView ? "Switch to List View" : "Switch to Detail View"}
-      </ToggleButton>
+      <h1 style={{ color: "#fff" }}>Available Agents</h1>
+
+      {/* The Custom Switch */}
+      <SwitchContainer>
+        {/* Left Label: List */}
+        <IconWrapper>
+          <List size={20} />
+          <SwitchLabel>List</SwitchLabel>
+        </IconWrapper>
+
+        <SwitchSlider isDetailView={isDetailView}>
+          <HiddenCheckbox
+            checked={isDetailView}
+            onChange={toggleView}
+            id="view-switch"
+          />
+          <SwitchCircle isDetailView={isDetailView} />
+        </SwitchSlider>
+
+        {/* Right Label: Graph */}
+        <IconWrapper>
+          <BarChart size={20} />
+          <SwitchLabel>Graph</SwitchLabel>
+        </IconWrapper>
+      </SwitchContainer>
 
       <AgentListContainer>
         {agentsData.map((agent, index) => (
