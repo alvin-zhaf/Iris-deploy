@@ -117,6 +117,7 @@ const AgentListContainer = styled.div`
 const AgentCard = styled.div<{ isExpanded: boolean }>`
   background-color: #27272a;
   border-radius: 10px;
+  border: 2px solid transparent;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem; /* Increased padding */
   cursor: pointer;
