@@ -1,5 +1,6 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import ForceGraph3D  from 'react-force-graph-3d';
+import * as THREE from 'three';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { Vector2 } from 'three';
 
@@ -355,28 +356,11 @@ const FocusGraph3D: React.FC = () => {
       });
   }, []);
 
+  // Handle mouse and touch events for interaction
   useEffect(() => {
-    if (!fgRef.current) return;
-
-    const composer = fgRef.current.postProcessingComposer?.();
-    if (!composer) return;
-
-    const bloomPass = new UnrealBloomPass(
-      new Vector2(window.innerWidth, window.innerHeight),
-      0.5, // strength
-      1, // radius
-      0  // threshold
-    );
-    composer.addPass(bloomPass);
-  }, [graphData]);
-
-  useEffect(() => {
-    // Reference for initial click position
     const handleMouseDown = (event: MouseEvent) => {
       isDraggingRef.current = true;
       lastMousePosRef.current = { x: event.clientX, y: event.clientY };
-      
-      // Left click is typically rotation
       if (event.button === 0) {
         isRotatingRef.current = true;
       } else {
@@ -389,33 +373,24 @@ const FocusGraph3D: React.FC = () => {
       isRotatingRef.current = false;
     };
 
-    // Detect pan by checking mouse movement while dragging
     const handleMouseMove = (event: MouseEvent) => {
       if (!isDraggingRef.current) return;
-      
       const dx = Math.abs(event.clientX - lastMousePosRef.current.x);
       const dy = Math.abs(event.clientY - lastMousePosRef.current.y);
-      
-      // If movement is significant and it's not a rotation action
       if ((dx > 3 || dy > 3) && !isRotatingRef.current) {
         handlePanInteraction();
       }
-      
-      // Update last position
       lastMousePosRef.current = { x: event.clientX, y: event.clientY };
     };
 
-    // For touch events (always considered pan)
     const handleTouchMove = (event: TouchEvent) => {
       if (event.touches.length === 1) {
         const touch = event.touches[0];
         const dx = Math.abs(touch.clientX - lastMousePosRef.current.x);
         const dy = Math.abs(touch.clientY - lastMousePosRef.current.y);
-        
         if (dx > 3 || dy > 3) {
           handlePanInteraction();
         }
-        
         lastMousePosRef.current = { x: touch.clientX, y: touch.clientY };
       }
     };
@@ -427,14 +402,12 @@ const FocusGraph3D: React.FC = () => {
       }
     };
 
-    // Add all event listeners
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchmove', handleTouchMove);
     window.addEventListener('touchstart', handleTouchStart);
     
-    // Clean up
     return () => {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -445,15 +418,11 @@ const FocusGraph3D: React.FC = () => {
   }, []);
 
   const handlePanInteraction = useCallback(() => {
-    // Start fade-out animation
     setImageOpacity(0);
-    
-    // After fade completes, hide the image
     if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
     fadeTimeoutRef.current = setTimeout(() => {
       setShowImage(false);
-    }, 300); // Match fade duration (0.3s)
-    
+    }, 300);
     if (imageTimeoutRef.current) clearTimeout(imageTimeoutRef.current);
   }, []);
 
@@ -474,27 +443,21 @@ const FocusGraph3D: React.FC = () => {
       );
     }
 
-    // Clear previous timeouts
     if (imageTimeoutRef.current) clearTimeout(imageTimeoutRef.current);
     if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
     
-    // Hide image initially
     setShowImage(false);
     setImageOpacity(0);
     
-    // Show image after 3 seconds with fade-in
     imageTimeoutRef.current = setTimeout(() => {
       setShowImage(true);
-      // Start fade in
       setTimeout(() => {
         setImageOpacity(1);
-      }, 10); // Small delay to ensure DOM is updated
+      }, 10);
     }, 3000);
   }, []);
 
   const handleBackgroundClick = useCallback(() => {
-    // This is only for background click, not rotation
-    // Only hide if it wasn't a rotation action
     if (!isRotatingRef.current) {
       handlePanInteraction();
     }
@@ -535,6 +498,7 @@ const FocusGraph3D: React.FC = () => {
         onNodeClick={handleClick}
         onBackgroundClick={handleBackgroundClick}
         onNodeDragEnd={handlePanInteraction}
+        backgroundColor="rgba(0,0,0,0)" // Transparent background so the starfield shows up.
       />
     </div>
   );

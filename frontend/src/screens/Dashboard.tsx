@@ -1,7 +1,7 @@
 import React from "react";
 import styled, { keyframes } from "styled-components";
 import { BarChart, LineChart, PieChart, AreaChart } from "lucide-react";
-import FocusGraph3D from "../components/viz/FocusGraph3D";
+import FocusGraph3D from "../components/FocusGraph3D";
 
 // Container for the whole page with a dotted background.
 const DashboardContainer = styled.div`
