@@ -1,3 +1,5 @@
 web3
 rich
 dotenv
+fastapi
+uvicorn

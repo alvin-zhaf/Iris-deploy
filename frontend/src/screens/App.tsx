@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Button } from "../components/Button";
 import DeformCanvas from "../components/DeformCanvas";
-import { Globe, LayoutDashboard, Wallet, Bot } from "lucide-react";
+import { Globe, LayoutDashboard, Wallet, Bot, Send } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -17,11 +17,22 @@ import Agents from "./Agents";
 function HomeScreen({
   walletAddress,
   connectWalletDirectly,
+  sendMessage,
 }: {
   walletAddress: string;
   connectWalletDirectly: () => void;
+  sendMessage: (message: string) => void;
 }) {
   const navigate = useNavigate();
+  const [inputValue, setInputValue] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim()) {
+      sendMessage(inputValue);
+      setInputValue("");
+    }
+  };
 
   return (
     <Styled.HomeContainer>
@@ -31,7 +42,19 @@ function HomeScreen({
       {/* Logo and Title */}
       <Styled.LogoContainer>
         {/* Div blurred blob */}
-        <div style={{ position: "absolute", top: "20%", zIndex: -1, width: "25rem", height: "20rem", backgroundColor: "#8d00ff", borderRadius: "50%", filter: "blur(50px)", opacity: 0.12 }} />
+        <div
+          style={{
+            position: "absolute",
+            top: "20%",
+            zIndex: -1,
+            width: "25rem",
+            height: "20rem",
+            backgroundColor: "#8d00ff",
+            borderRadius: "50%",
+            filter: "blur(50px)",
+            opacity: 0.12,
+          }}
+        />
         <Styled.LogoImage src={Logo} alt="Logo" />
       </Styled.LogoContainer>
       <Styled.TitleText>IRIS</Styled.TitleText>
@@ -82,9 +105,20 @@ function HomeScreen({
       <Styled.FloatingIsland>
         <Styled.GlassmorphicContainer>
           <Styled.PromptHeading>What can I help with?</Styled.PromptHeading>
-          <Styled.PromptBar>
-            <Styled.PromptInput type="text" placeholder="Ask anything" />
-          </Styled.PromptBar>
+          <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+            <Styled.PromptBar>
+              <Styled.PromptInput
+                type="text"
+                placeholder="Ask anything"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+              />
+              <Styled.SendButton type="submit">
+                <Send size={18} />
+              </Styled.SendButton>
+            </Styled.PromptBar>
+          </form>
+
           <Styled.ButtonRow>
             <Styled.ConnectButton onClick={() => navigate("/dashboard")}>
               <LayoutDashboard size={18} />
@@ -107,6 +141,31 @@ function HomeScreen({
 
 function App() {
   const [walletAddress, setWalletAddress] = useState<string>("");
+
+  const sendMessage = (message: string) => {
+    // Create a new WebSocket connection for this message
+    const ws = new WebSocket("ws://localhost:8000/ws");
+
+    ws.onopen = () => {
+      console.log("WebSocket connection opened for sending message");
+      ws.send(message);
+      console.log(`Message sent: ${message}`);
+
+      // Set up a handler for any response that might come back
+      ws.onmessage = (event) => {
+        const response = event.data;
+        console.log("Message received:", response);
+
+        // Close the connection after receiving the response
+        ws.close();
+      };
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error while sending message:", error);
+      ws.close();
+    };
+  };
 
   const connectWalletDirectly = async () => {
     try {
@@ -137,6 +196,7 @@ function App() {
             <HomeScreen
               walletAddress={walletAddress}
               connectWalletDirectly={connectWalletDirectly}
+              sendMessage={sendMessage}
             />
           }
         />
@@ -239,6 +299,7 @@ export const Styled = {
     padding: 0.5rem 1rem;
     width: 90%;
     height: 2.5rem;
+    justify-content: space-between;
   `,
   PromptInput: styled.input`
     flex: 1;
@@ -251,8 +312,20 @@ export const Styled = {
     &::placeholder {
       color: #c0c0c0;
     }
-    width: 30%;
-    align-self: center;
+  `,
+  SendButton: styled.button`
+    background: transparent;
+    border: none;
+    color: #7f56d9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    transition: color 0.2s ease;
+    &:hover {
+      color: #9b66ff;
+    }
   `,
   ButtonRow: styled.div`
     display: flex;
