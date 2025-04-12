@@ -3,12 +3,12 @@ import styled from "styled-components";
 
 // Basic styling for the page
 const Container = styled.div`
-  padding: 2rem;
-  background-color: #f5f5f5;
+  background-color: #18181b;
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100vw;
 `;
 
 const AgentListContainer = styled.div`
