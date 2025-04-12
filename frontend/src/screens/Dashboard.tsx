@@ -54,7 +54,7 @@ const IconBox = styled.div`
   svg {
     width: 40px;
     height: 40px;
-    stroke: #00adb5;
+    stroke: #7f56d9;
   }
 `;
 
