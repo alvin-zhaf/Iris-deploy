@@ -3,6 +3,7 @@ load_dotenv()
 
 import requests
 import os
+import time
 from rich.console import Console
 from rich.traceback import install
 from rich.status import Status
@@ -150,6 +151,8 @@ def listen_for_contract_requests():
     try:
         with Status("[bold green]Listening for contract requests...[/bold green]", console=console):
             while True:
+                # Wait 3 seconds - DO NOT REMOVE
+                time.sleep(3)
                 events = oracle_contract.events.RequestData.create_filter(from_block='latest').get_new_entries()
                 for event in events:
                     logger.info(f"Event received: {event}")
