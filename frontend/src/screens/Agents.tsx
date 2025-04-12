@@ -110,7 +110,7 @@ const AgentListContainer = styled.div`
     auto-fill,
     minmax(250px, 1fr)
   ); /* Grid layout */
-  gap: 1rem; /* Spacing between cards */
+  gap: 1.5rem; /* Increased spacing between cards */
   padding-bottom: 2rem; /* Add some bottom padding */
 `;
 
@@ -119,9 +119,12 @@ const AgentCard = styled.div<{ isExpanded: boolean }>`
   border-radius: 10px;
   border: 2px solid transparent;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem; /* Increased padding */
+  padding: 1.5rem 1.5rem 0 1.5rem; /* Remove bottom padding */
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative; /* For absolute positioning of the sparkline */
+  overflow: hidden; /* To keep the sparkline within the border radius */
+  aspect-ratio: 1/1; /* Make the card perfectly square */
 
   &:hover {
     transform: scale(1.05);
@@ -148,6 +151,15 @@ const PerformanceMetrics = styled.div`
   font-size: 0.9rem;
   color: #888;
   margin-bottom: 1rem;
+`;
+
+const SparklineContainer = styled.div`
+  position: absolute;
+  bottom: 0; /* Start from the bottom */
+  left: 0;
+  right: 0;
+  height: 50%; /* Take exactly half the card height */
+  width: 100%;
 `;
 
 // -------------------- FULL-PAGE GRAPH OVERLAY -------------------- //
@@ -213,6 +225,59 @@ const SwitchCircle = styled.div<{ active: boolean }>`
   z-index: 1;
 `;
 
+// -------------------- SPARKLINE COMPONENT -------------------- //
+
+// Simple sparkline implementation since we're not importing MUI Sparkline
+const Sparkline = ({ data, color }: { data: number[], color: string }) => {
+  // Create SVG path for the area chart
+  const width = 100;
+  const height = 100; // Using 100 for easier percentage calculations
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  
+  // Create path points - position in the top part of the bottom half
+  const points = data.map((value, index) => {
+    const x = (index / (data.length - 1)) * width;
+    // Position the chart line at about 40-45% from the top of the SVG (in the upper portion of bottom half)
+    const y = (height * 0.4) + ((value - min) / range) * (height * 0.1);
+    return `${x},${y}`;
+  });
+  
+  // Create separate paths - one for fill with gradient and one for stroke
+  const fillPathD = `M0,${height} L0,${points[0].split(',')[1]} L${points.join(' L')} L${width},${points[points.length-1].split(',')[1]} L${width},${height} Z`;
+  const strokePathD = `M${points.join(' L')}`;
+  
+  return (
+    <svg 
+      width="100%" 
+      height="100%" 
+      viewBox={`0 0 ${width} ${height}`} 
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <linearGradient id={`gradient-${color.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.8" />
+          <stop offset="40%" stopColor={color} stopOpacity="0.5" />
+          <stop offset="70%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d={fillPathD}  
+        fill={`url(#gradient-${color.replace('#', '')})`}
+        stroke="none"
+      />
+      <path
+        d={strokePathD}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+};
+
 // -------------------- MOCK DATA -------------------- //
 
 const agentsData = [
@@ -223,6 +288,8 @@ const agentsData = [
     timeCreated: "2023-01-15",
     freqUsed: "1500 times",
     performance: { speed: "90%", accuracy: "85%" },
+    sparklineData: [10, 15, 13, 17, 12, 14, 18, 15, 20, 18, 22],
+    sparklineColor: "#7f56d9"
   },
   {
     name: "Agent Beta",
@@ -232,6 +299,8 @@ const agentsData = [
     timeCreated: "2023-02-20",
     freqUsed: "1000 times",
     performance: { speed: "80%", accuracy: "90%" },
+    sparklineData: [5, 8, 12, 10, 14, 16, 13, 15, 18, 19, 17],
+    sparklineColor: "#7f56d9"
   },
   {
     name: "Agent Gamma",
@@ -240,6 +309,8 @@ const agentsData = [
     timeCreated: "2023-03-10",
     freqUsed: "1200 times",
     performance: { speed: "70%", accuracy: "95%" },
+    sparklineData: [8, 10, 12, 14, 12, 16, 15, 17, 19, 20, 22],
+    sparklineColor: "#7f56d9"
   },
 ];
 
@@ -322,6 +393,12 @@ const Agents: React.FC = () => {
                   </p>
                 </PerformanceMetrics>
               )}
+              <SparklineContainer>
+                <Sparkline 
+                  data={agent.sparklineData} 
+                  color={agent.sparklineColor} 
+                />
+              </SparklineContainer>
             </AgentCard>
           ))}
         </AgentListContainer>
