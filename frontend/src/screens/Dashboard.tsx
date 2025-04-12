@@ -1,12 +1,13 @@
-import { useState, useEffect, KeyboardEvent, useRef } from "react";
+// Dashboard.tsx
+import { useState, useEffect, KeyboardEvent } from "react";
 import { Search, PlusCircle, BarChart2, Bot, PlayCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import { ScrollArea } from "../components/ScrollArea";
+import { ArrowLeft } from "lucide-react";
 import logo from "../assets/logo.svg";
+import styled from "styled-components";
 
 export default function Dashboard() {
   const [agents, setAgents] = useState<any[]>([]);
@@ -14,7 +15,7 @@ export default function Dashboard() {
   const [focusedAgentIndex, setFocusedAgentIndex] = useState<number>(-1);
   const navigate = useNavigate();
 
-  // Listen to real-time updates from the "agents" collection
+  // Real-time agents collection listener.
   useEffect(() => {
     const agentsRef = collection(db, "agents");
     const unsubscribe = onSnapshot(
@@ -33,12 +34,12 @@ export default function Dashboard() {
     return () => unsubscribe();
   }, []);
 
-  // Filter agents based on search term
+  // Filter agents based on search term.
   const filteredAgents = agents.filter((agent) =>
     agent.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle keyboard navigation for agent cards
+  // Handle keyboard navigation on agent cards.
   const handleAgentKeyDown = (
     e: KeyboardEvent<HTMLDivElement>,
     index: number,
@@ -50,15 +51,11 @@ export default function Dashboard() {
     }
   };
 
-  // Handle play button click
   const handlePlayClick = (e: React.MouseEvent, agentId: string) => {
     e.stopPropagation();
-    // Handle play functionality here
     console.log(`Play agent: ${agentId}`);
-    // For example, you might want to run the agent or open a specific view
   };
 
-  // Handle play button keyboard events
   const handlePlayKeyDown = (
     e: KeyboardEvent<HTMLButtonElement>,
     agentId: string
@@ -66,132 +63,322 @@ export default function Dashboard() {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       e.stopPropagation();
-      // Handle play functionality here
       console.log(`Play agent: ${agentId}`);
     }
   };
 
   return (
-    <div className="flex h-screen bg-zinc-900 text-gray-300 overflow-hidden">
+    <Container>
       {/* Sidebar */}
-      <div className="w-60 border-r border-gray-800 p-4 flex flex-col justify-between bg-[rgb(39,39,42)]">
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <img src={logo} alt="Logo" className="w-12 h-auto object-contain" />
-            <h3
-              className="text-3xl font-bold text-purple-300 pt-4"
-              style={{ fontFamily: "kugile" }}
-            >
-              IRIS
-            </h3>
-          </div>
-          <div className="space-y-4">
-            <div
-              className="flex items-center gap-2 p-2 text-white transition-colors duration-300 hover:text-purple-300 cursor-pointer"
-              tabIndex={0}
-            >
+      <Sidebar>
+        <SidebarHeader>
+          <SidebarBrand>
+            <SidebarLogo src={logo} alt="Logo" />
+            <SidebarTitle style={{ fontFamily: "kugile" }}>IRIS</SidebarTitle>
+          </SidebarBrand>
+          <div>
+            <SidebarItem tabIndex={0}>
               <Bot size={18} />
               <span>Agents</span>
-            </div>
-            <div
-              className="flex items-center gap-2 p-2 text-white transition-colors duration-300 hover:text-purple-300 cursor-pointer"
-              tabIndex={0}
-            >
+            </SidebarItem>
+            <SidebarItem tabIndex={0}>
               <BarChart2 size={18} />
               <span>Stats</span>
-            </div>
+            </SidebarItem>
           </div>
-        </div>
-        <div className="mb-2">
-          <div className="flex items-center gap-2 opacity-70 cursor-pointer">
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-lg mb-8 text-purple-300"
-              tabIndex={0}
-            >
-              <ArrowLeft size={20} />
-              <span>Back</span>
-            </Link>
-          </div>
-        </div>
-      </div>
+        </SidebarHeader>
+        <SidebarFooter>
+          <BackLink to="/" tabIndex={0}>
+            <ArrowLeft size={20} />
+            <span>Back</span>
+          </BackLink>
+        </SidebarFooter>
+      </Sidebar>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col p-6 relative">
+      <MainContent>
         {/* Search Bar */}
-        <div className="mb-8 relative m-2">
-          <input
+        <SearchBarContainer>
+          <StyledInput
             type="text"
             placeholder="Search for Agents here"
-            className="w-full py-2 px-4 pr-10 rounded-lg bg-zinc-800 text-gray-300 focus:outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             tabIndex={0}
           />
-          <Search
-            className="absolute right-3 top-2.5 text-gray-500"
-            size={20}
-          />
-        </div>
+          <SearchIcon size={20} />
+        </SearchBarContainer>
 
-        {/* Agents Grid with ScrollArea */}
-        <ScrollArea className="flex-1 h-[calc(100vh-160px)]">
-          <div className="grid grid-cols-2 gap-6 pb-20 pr-4">
+        {/* Agents Grid */}
+        <ScrollArea style={{ flex: 1, height: "calc(100vh - 160px)" }}>
+          <GridContainer>
             {filteredAgents.map((agent, index) => (
-              <div
+              <AgentCard
                 key={agent.id}
+                focused={index === focusedAgentIndex}
                 onClick={() => navigate(`/flowpage/${agent.id}`)}
                 onKeyDown={(e) => handleAgentKeyDown(e, index, agent.id)}
-                className={`
-                  bg-zinc-800 rounded-lg p-4 bg-[rgb(39,39,42)] cursor-pointer 
-                  border ${
-                    index === focusedAgentIndex
-                      ? "border-purple-300"
-                      : "border-transparent"
-                  } 
-                  hover:border-purple-300 transition-colors focus:border-purple-400 focus:outline-none
-                `}
                 tabIndex={0}
                 role="button"
                 aria-label={`Agent: ${agent.name}`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-300 rounded-full"></div>
-                    <span className="text-gray-300 hover:underline">
-                      {agent.name}
-                    </span>
-                  </div>
-                  <button
-                    className="p-2 hover:bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    tabIndex={0} // Make the play button tabbable
+                <AgentCardHeader>
+                  <AgentInfo>
+                    <AgentAvatar />
+                    <AgentName>{agent.name}</AgentName>
+                  </AgentInfo>
+                  <PlayButton
+                    tabIndex={0}
                     aria-label={`Run ${agent.name}`}
                     onClick={(e) => handlePlayClick(e, agent.id)}
                     onKeyDown={(e) => handlePlayKeyDown(e, agent.id)}
                   >
-                    <PlayCircle size={24} className="text-purple-300" />
-                  </button>
-                </div>
-                <div className="text-sm opacity-70">
+                    <PlayCircle size={24} style={{ color: "#a78bfa" }} />
+                  </PlayButton>
+                </AgentCardHeader>
+                <AgentDescription>
                   Agent purpose: {agent.description}
-                </div>
-              </div>
+                </AgentDescription>
+              </AgentCard>
             ))}
-          </div>
+          </GridContainer>
         </ScrollArea>
 
         {/* Create New Button */}
-        <div className="fixed bottom-6 right-6">
-          <button
-            className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-            onClick={() => navigate("/flowpage")}
-            tabIndex={0}
-          >
-            <PlusCircle size={18} />
-            <span>Create New</span>
-          </button>
-        </div>
-      </div>
-    </div>
+        <CreateNewButton
+          onClick={() => navigate("/flowpage")}
+          tabIndex={0}
+        >
+          <PlusCircle size={18} />
+          <span>Create New</span>
+        </CreateNewButton>
+      </MainContent>
+    </Container>
   );
 }
+
+const Container = styled.div`
+  display: flex;
+  height: 100vh;
+  background-color: #18181b; /* bg-zinc-900 */
+  color: #d1d5db; /* gray-300 */
+  overflow: hidden;
+  width: 100vw;   
+`;
+
+const Sidebar = styled.div`
+  width: 15rem;
+  border-right: 1px solid #27272a; /* border-gray-800 */
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: rgb(39, 39, 42);
+`;
+
+const SidebarHeader = styled.div`
+  margin-bottom: 1rem;
+`;
+
+const SidebarBrand = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+`;
+
+const SidebarLogo = styled.img`
+  width: 3rem; /* Approx w-12 */
+  height: auto;
+  object-fit: contain;
+`;
+
+const SidebarTitle = styled.h3`
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: bold;
+  color: #d8b4fe; /* text-purple-300 */
+  padding-top: 1rem;
+`;
+
+const SidebarItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  color: #ffffff;
+  transition: color 0.3s;
+  cursor: pointer;
+  &:hover {
+    color: #a78bfa;
+  }
+  &:focus {
+    outline: none;
+    color: #a78bfa;
+  }
+`;
+
+const SidebarFooter = styled.div`
+  margin-bottom: 0.5rem;
+`;
+
+const BackLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+  color: #a78bfa;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const MainContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  position: relative;
+  width: 100%;
+`;
+
+const SearchBarContainer = styled.div`
+  position: relative;
+  margin: 0.5rem 1rem 2rem 1rem;
+`;
+
+const StyledInput = styled.input`
+  width: 100%;
+  padding: 0.5rem 3rem 0.5rem 1rem; /* extra right padding for the icon */
+  border-radius: 0.5rem;
+  background-color: #27272a; /* bg-zinc-800 */
+  color: #d1d5db;
+  border: none;
+  &:focus {
+    outline: none;
+  }
+`;
+
+const SearchIcon = styled(Search)`
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280; /* text-gray-500 */
+`;
+
+const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  padding: 0 1rem 5rem 1rem;
+`;
+
+interface AgentCardProps {
+  focused: boolean;
+}
+
+const AgentCard = styled.div<AgentCardProps>`
+  background-color: #27272a; /* bg-zinc-800 / or bg-[rgb(39,39,42)] */
+  border-radius: 0.5rem;
+  padding: 1rem;
+  cursor: pointer;
+  border: 2px solid ${({ focused }) => (focused ? "#a78bfa" : "transparent")};
+  transition: border-color 0.3s;
+  &:hover {
+    border-color: #a78bfa;
+  }
+  &:focus {
+    outline: none;
+    border-color: #c084fc;
+  }
+`;
+
+const AgentCardHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+`;
+
+const AgentInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const AgentAvatar = styled.div`
+  width: 2rem;
+  height: 2rem;
+  background-color: #a78bfa;
+  border-radius: 9999px;
+`;
+
+const AgentName = styled.span`
+  color: #d1d5db;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const PlayButton = styled.button`
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: #3f3f46;
+  }
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #a78bfa;
+  }
+`;
+
+const AgentDescription = styled.div`
+  font-size: 0.875rem;
+  opacity: 0.7;
+`;
+
+const CreateNewButton = styled.button`
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #8b5cf6;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: #7c3aed;
+  }
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #a78bfa;
+  }
+`;
+
+const DeleteButton = styled.button`
+  padding: 0.5rem;
+  border: none;
+  background-color: #dc2626;  /* red background */
+  border-radius: 9999px;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 0.9rem;
+  transition: background-color 0.2s, transform 0.15s ease;
+  &:hover {
+    background-color: #e11d48;
+  }
+  &:active {
+    transform: scale(0.98);
+  }
+`;
