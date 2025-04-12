@@ -30,6 +30,8 @@ function HomeScreen({
 
       {/* Logo and Title */}
       <Styled.LogoContainer>
+        {/* Div blurred blob */}
+        <div style={{ position: "absolute", top: "20%", zIndex: -1, width: "25rem", height: "20rem", backgroundColor: "#8d00ff", borderRadius: "50%", filter: "blur(50px)", opacity: 0.12 }} />
         <Styled.LogoImage src={Logo} alt="Logo" />
       </Styled.LogoContainer>
       <Styled.TitleText>IRIS</Styled.TitleText>
