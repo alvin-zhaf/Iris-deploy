@@ -23,9 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-<<<<<<< HEAD:frontend/.gitignore
-.env
-=======
 .env
 
 # Python
@@ -37,4 +34,3 @@ __pycache__/
 *.egg-info/
 *.egg
 *.whl
->>>>>>> 076c55e69b6685b9e52c458c8fef2832759b16dd:.gitignore
