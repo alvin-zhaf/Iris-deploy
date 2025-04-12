@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled, { keyframes } from "styled-components";
-import { BarChart, List, ArrowLeft, Home } from "lucide-react";
+import { BarChart, List, ArrowLeft, Home, Plus, X } from "lucide-react";
 import FocusGraph3D from "../components/FocusGraph3D";
 
 // -------------------- ANIMATION & BACKGROUND EFFECTS -------------------- //
@@ -135,6 +135,46 @@ const AgentCard = styled.div<{ isExpanded: boolean }>`
     props.isExpanded ? "scale(1.05)" : "scale(1)"}; /* Scale on click */
 `;
 
+// New card for creating an agent
+const CreateAgentCard = styled.div`
+  background-color: #27272a;
+  border-radius: 10px;
+  border: 2px dotted rgba(127, 86, 217, 0.5);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem 1.5rem 0 1.5rem; /* Match AgentCard padding */
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+  aspect-ratio: 1/1; /* Make the card perfectly square */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* For consistency with AgentCard */
+  overflow: hidden; /* For consistency with AgentCard */
+
+  &:hover {
+    transform: scale(1.05);
+    border: 2px dotted #d8b4fe;
+  }
+`;
+
+const PlusIconContainer = styled.div`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: rgba(127, 86, 217, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+`;
+
+const CreateAgentText = styled.p`
+  color: #d8b4fe;
+  font-size: 1.1rem;
+  margin: 0;
+`;
+
 const AgentTitle = styled.h3`
   font-size: 1.2rem;
   margin-bottom: 1rem;
@@ -162,6 +202,154 @@ const SparklineContainer = styled.div`
   width: 100%;
 `;
 
+// -------------------- DIALOG STYLES -------------------- //
+
+const fadeIn = keyframes`
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+`;
+
+const DialogOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  animation: ${fadeIn} 0.3s ease;
+`;
+
+const DialogContent = styled.div`
+  background: #27272a;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  animation: ${fadeIn} 0.4s ease;
+`;
+
+const DialogHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+`;
+
+const DialogTitle = styled.h2`
+  color: #d8b4fe;
+  margin: 0;
+  font-size: 1.5rem;
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const Label = styled.label`
+  color: #fff;
+  font-size: 0.9rem;
+`;
+
+const Input = styled.input`
+  background: #3f3f46;
+  border: 1px solid #52525b;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: #7f56d9;
+  }
+`;
+
+const TextArea = styled.textarea`
+  background: #3f3f46;
+  border: 1px solid #52525b;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 100px;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: #7f56d9;
+  }
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
+const CancelButton = styled.button`
+  background: transparent;
+  border: 1px solid #52525b;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: #3f3f46;
+  }
+`;
+
+const SubmitButton = styled.button`
+  background: #7f56d9;
+  border: none;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: #6941c6;
+  }
+`;
+
 // -------------------- FULL-PAGE GRAPH OVERLAY -------------------- //
 
 const GraphOverlay = styled.div`
@@ -170,7 +358,7 @@ const GraphOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  background: radial-gradient(ellipse at bottom, #3f3f46 0%, #090a0f 100%);
   animation: ${fadeInUp} 0.6s ease;
   z-index: 10;
   display: flex;
@@ -314,6 +502,31 @@ const agentsData = [
   },
 ];
 
+// -------------------- SUCCESS NOTIFICATION -------------------- //
+
+const fadeInOut = keyframes`
+  0% { opacity: 0; transform: translateX(20px); }
+  10% { opacity: 1; transform: translateX(0); }
+  90% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(20px); }
+`;
+
+const SuccessNotification = styled.div`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #7f56d9;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: ${fadeInOut} 3s ease forwards;
+`;
+
 // -------------------- MAIN COMPONENT -------------------- //
 
 const Agents: React.FC = () => {
@@ -323,6 +536,12 @@ const Agents: React.FC = () => {
   const [expandedAgentIndex, setExpandedAgentIndex] = useState<number | null>(
     null
   );
+  // State for the new agent dialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newAgentName, setNewAgentName] = useState("");
+  const [newAgentDescription, setNewAgentDescription] = useState("");
+  // State for success notification
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const toggleView = () => {
     setIsDetailView((prev) => !prev);
@@ -338,6 +557,37 @@ const Agents: React.FC = () => {
 
   const toggleAgentExpanded = (index: number) => {
     setExpandedAgentIndex(expandedAgentIndex === index ? null : index);
+  };
+
+  const openDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    // Reset form fields when closing
+    setNewAgentName("");
+    setNewAgentDescription("");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically add the new agent to your state or send to an API
+    console.log("Creating new agent:", { name: newAgentName, description: newAgentDescription });
+    
+    // Close the dialog
+    closeDialog();
+    
+    // Show success notification
+    setShowSuccess(true);
+    
+    // Auto-hide success notification after 3 seconds
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 3000);
+    
+    // In a real implementation, you'd add the new agent to your list
+    // and potentially navigate to a creation/configuration page
   };
 
   return (
@@ -369,6 +619,15 @@ const Agents: React.FC = () => {
       {/* Render the Agent List when in List mode */}
       {!isDetailView && (
         <AgentListContainer>
+          {/* Create Agent Card */}
+          <CreateAgentCard onClick={openDialog}>
+            <PlusIconContainer>
+              <Plus size={30} color="#d8b4fe" />
+            </PlusIconContainer>
+            <CreateAgentText>Create New Agent</CreateAgentText>
+          </CreateAgentCard>
+          
+          {/* Existing Agent Cards */}
           {agentsData.map((agent, index) => (
             <AgentCard
               key={index}
@@ -410,6 +669,61 @@ const Agents: React.FC = () => {
           <StarField />
           <FocusGraph3D />
         </GraphOverlay>
+      )}
+
+      {/* Dialog for creating a new agent */}
+      {isDialogOpen && (
+        <DialogOverlay>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Agent</DialogTitle>
+              <CloseButton onClick={closeDialog}>
+                <X size={24} />
+              </CloseButton>
+            </DialogHeader>
+            <Form onSubmit={handleSubmit}>
+              <FormGroup>
+                <Label htmlFor="agentName">Agent Name</Label>
+                <Input
+                  id="agentName"
+                  type="text"
+                  value={newAgentName}
+                  onChange={(e) => setNewAgentName(e.target.value)}
+                  placeholder="Enter agent name"
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="agentDescription">Description</Label>
+                <TextArea
+                  id="agentDescription"
+                  value={newAgentDescription}
+                  onChange={(e) => setNewAgentDescription(e.target.value)}
+                  placeholder="Describe what this agent does"
+                  required
+                />
+              </FormGroup>
+              <ButtonContainer>
+                <CancelButton type="button" onClick={closeDialog}>
+                  Cancel
+                </CancelButton>
+                <SubmitButton type="submit">
+                  Create Agent
+                </SubmitButton>
+              </ButtonContainer>
+            </Form>
+          </DialogContent>
+        </DialogOverlay>
+      )}
+
+      {/* Success notification */}
+      {showSuccess && (
+        <SuccessNotification>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="white"/>
+          </svg>
+          Agent created successfully!
+        </SuccessNotification>
       )}
     </Container>
   );
