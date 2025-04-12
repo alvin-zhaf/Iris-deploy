@@ -8,14 +8,13 @@ const DashboardContainer = styled.div`
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background-color: #0f0f0f;
   background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
   background-size: 20px 20px;
   display: flex;
   justify-content: center;
   align-items: flex-start; /* Align items to the top */
-  padding: 2rem;
 `;
 
 // Container for the icons at the top of the page.
