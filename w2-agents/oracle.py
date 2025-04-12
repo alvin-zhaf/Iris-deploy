@@ -201,6 +201,7 @@ def listen_for_contract_requests():
             event_filter = oracle_contract.events.RequestData.create_filter(from_block='latest')  # Creates the filter to listen for events from the latest block
             while True:
                 # Poll every 3 seconds
+                time.sleep(1)
                 events = event_filter.get_new_entries()  # Get new entries (events) that have been emitted
                 for event in events:
                     logger.info(f"Event received: {event}")
