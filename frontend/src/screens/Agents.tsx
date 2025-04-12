@@ -1,17 +1,31 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { BarChart, List } from "lucide-react"; // Example icons for "Graph" & "List"
+import { BarChart, List, ArrowLeft, Home, LayoutDashboard } from "lucide-react";
 
-// -------------------- STYLED COMPONENTS -------------------- //
+// -------------------- PAGE STYLES -------------------- //
 
-// Basic styling for the page
 const Container = styled.div`
   background-color: #18181b;
   height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100vw;
+`;
+
+const Header = styled.div`
+  width: 80%;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const Title = styled.h1`
+  color: #fff;
+  margin: 0;
+  flex: 1;
+  text-align: center;
 `;
 
 const AgentListContainer = styled.div`
@@ -50,67 +64,73 @@ const PerformanceMetrics = styled.div`
   margin-bottom: 1rem;
 `;
 
-// -------------------- THE CUSTOM SWITCH -------------------- //
 
-/**
- * SwitchContainer: a horizontal container with two labels/icons.
- * SwitchLabel: optional text next to each icon (e.g., "List" and "Graph").
- * SwitchSlider: the pill-shaped background.
- * SwitchCircle: the circular "thumb" that slides left/right.
- */
-const SwitchContainer = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 1.5rem 0; /* Spacing around the switch */
-`;
+// -------------------- CONTROL BUTTONS -------------------- //
 
-const SwitchSlider = styled.label<{ isDetailView: boolean }>`
-  position: relative;
-  width: 110px;
-  height: 50px;
-  background-color: ${({ isDetailView }) =>
-    isDetailView ? "#7f56d9" : "#44444a"};
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  display: inline-block;
-  margin: 0 1rem;
-`;
-
-const SwitchCircle = styled.span<{ isDetailView: boolean }>`
-  position: absolute;
-  top: 4px;
-  left: ${({ isDetailView }) => (isDetailView ? "58px" : "4px")};
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background-color: #ffffff;
-  transition: left 0.3s ease;
-`;
-
-// Hidden checkbox for accessibility
-const HiddenCheckbox = styled.input.attrs({ type: "checkbox" })`
-  display: none;
-`;
-
-const SwitchLabel = styled.span`
+const ControlButton = styled.button`
+  background: rgba(25, 25, 25, 0.95);
+  border: 1px solid rgba(127, 86, 217, 0.3);
   color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  cursor: pointer;
   font-size: 0.9rem;
-  user-select: none;
-  margin-left: 0.5rem;
-`;
-
-const IconWrapper = styled.div`
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s ease, transform 0.2s ease;
+  font-size: 1.3rem;
 
-  svg {
-    stroke: #fff;
-    margin-right: 0.3rem;
+  &:hover {
+    background: rgba(25, 25, 25, 1);
+    transform: translateY(-2px);
   }
 `;
 
-// -------------------- MOCK DATA -------------------- //
+// -------------------- CUSTOM UNIFIED TOGGLE BUTTON -------------------- //
+
+const ToggleSwitch = styled.div`
+  position: relative;
+  width: 240px;
+  height: 50px;
+  background-color: #44444a;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  margin: 1.5rem 0;
+`;
+
+const ToggleOption = styled.div<{ active: boolean }>`
+  flex: 1;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: ${({ active }) => (active ? "#fff" : "#bbb")};
+  transition: color 0.3s ease;
+
+  svg {
+    stroke: ${({ active }) => (active ? "#fff" : "#bbb")};
+    margin-right: 0.5rem;
+    transition: stroke 0.3s ease;
+  }
+`;
+
+const SwitchCircle = styled.div<{ active: boolean }>`
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  border-radius: 999px;
+  background-color: #7f56d9;
+  top: 0;
+  left: ${({ active }) => (active ? "50%" : "0%")};
+  transition: left 0.3s ease;
+  z-index: 1;
+`;
 
 const agentsData = [
   {
@@ -131,50 +151,52 @@ const agentsData = [
   },
 ];
 
-// -------------------- MAIN COMPONENT -------------------- //
-
 const Agents: React.FC = () => {
+  // false: List view, true: Graph view.
   const [isDetailView, setIsDetailView] = useState(false);
 
-  // Toggle between list and detail (graph) view
   const toggleView = () => {
-    setIsDetailView(!isDetailView);
+    setIsDetailView((prev) => !prev);
+  };
+
+  // Action for Back button; you can integrate with a router as needed.
+  const handleBack = () => {
+    window.history.back();
+  };
+
+  // Action for Dashboard button.
+  const goToDashboard = () => {
+    window.location.href = "/dashboard";
   };
 
   return (
     <Container>
-      <h1 style={{ color: "#fff" }}>Available Agents</h1>
+      <Header>
+        <ControlButton onClick={handleBack}>
+          <ArrowLeft size={24} /> Back
+        </ControlButton>
+        <Title>Available Agents</Title>
+        <ControlButton onClick={goToDashboard}>
+          <LayoutDashboard size={24} /> Dashboard
+        </ControlButton>
+      </Header>
 
-      {/* The Custom Switch */}
-      <SwitchContainer>
-        {/* Left Label: List */}
-        <IconWrapper>
-          <List size={20} />
-          <SwitchLabel>List</SwitchLabel>
-        </IconWrapper>
-
-        <SwitchSlider isDetailView={isDetailView}>
-          <HiddenCheckbox
-            checked={isDetailView}
-            onChange={toggleView}
-            id="view-switch"
-          />
-          <SwitchCircle isDetailView={isDetailView} />
-        </SwitchSlider>
-
-        {/* Right Label: Graph */}
-        <IconWrapper>
-          <BarChart size={20} />
-          <SwitchLabel>Graph</SwitchLabel>
-        </IconWrapper>
-      </SwitchContainer>
+      {/* Unified Toggle Button */}
+      <ToggleSwitch onClick={toggleView}>
+        <SwitchCircle active={isDetailView} />
+        <ToggleOption active={!isDetailView}>
+          <List size={20} /> List
+        </ToggleOption>
+        <ToggleOption active={isDetailView}>
+          <BarChart size={20} /> Graph
+        </ToggleOption>
+      </ToggleSwitch>
 
       <AgentListContainer>
         {agentsData.map((agent, index) => (
           <AgentCard key={index}>
             <AgentTitle>{agent.name}</AgentTitle>
             <AgentDescription>{agent.description}</AgentDescription>
-
             {isDetailView && (
               <PerformanceMetrics>
                 <p>
