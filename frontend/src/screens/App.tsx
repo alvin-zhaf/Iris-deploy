@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Button } from "../components/Button";
 import DeformCanvas from "../components/DeformCanvas";
 import { Globe, LayoutDashboard, Wallet } from "lucide-react";
@@ -10,7 +11,6 @@ import {
 } from "../components/Tooltip";
 import Logo from "../assets/logo.svg";
 import styled from "styled-components";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Dashboard from "./Dashboard";
 
 function HomeScreen({
@@ -30,8 +30,8 @@ function HomeScreen({
       {/* Logo and Title */}
       <Styled.LogoContainer>
         <Styled.LogoImage src={Logo} alt="Logo" />
-        <Styled.TitleText>IRIS</Styled.TitleText>
       </Styled.LogoContainer>
+      <Styled.TitleText>IRIS</Styled.TitleText>
 
       {/* Top right wallet panel */}
       <Styled.TopRightPanel>
@@ -40,7 +40,9 @@ function HomeScreen({
             <Tooltip>
               <TooltipTrigger>
                 <Styled.ConnectButton variant="default">
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
                     <div style={{ position: "relative", display: "flex" }}>
                       <span style={Styled.PulseStyles.pulseCircle} />
                       <span style={Styled.PulseStyles.pulseDot} />
@@ -50,14 +52,23 @@ function HomeScreen({
                 </Styled.ConnectButton>
               </TooltipTrigger>
               <TooltipContent>
-                <p style={{ fontSize: 12, color: "#cfcfcf", wordBreak: "break-all" }}>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#cfcfcf",
+                    wordBreak: "break-all",
+                  }}
+                >
                   {walletAddress}
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ) : (
-          <Styled.ConnectButton variant="default" onClick={connectWalletDirectly}>
+          <Styled.ConnectButton
+            variant="default"
+            onClick={connectWalletDirectly}
+          >
             <Wallet size={16} />
             Connect Wallet
           </Styled.ConnectButton>
@@ -137,37 +148,40 @@ export const Styled = {
   /* === Containers & Layout === */
   HomeContainer: styled.div`
     min-height: 100vh;
-    /* Purple gradient background */
     color: #ffffff;
     position: relative;
     overflow: hidden;
+    background-color: #18181b;
   `,
-  /* Position the logo so it overlaps the glass container,
-     giving the impression that it’s emerging from it */
   LogoContainer: styled.div`
     position: absolute;
-    top: 3%; /* Move higher */
-    left: 0;
-    right: 0;
+    top: 50%; /* Adjust this to center it vertically */
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the container */
     display: flex;
     flex-direction: column;
     align-items: center;
-    pointer-events: none;
     z-index: 2;
+    pointer-events: none;
   `,
   LogoImage: styled.img`
-    width: 15vw;
-    max-width: 200px;
-    opacity: 0.9;
-    margin-bottom: -30px; /* Overlap the container */
+    width: 30vw; /* Make the logo larger */
+    max-width: 300px;
+    opacity: 0.4;
+    margin-bottom: 200px; /* Adjust spacing */
+    max-width: none;
   `,
   TitleText: styled.h1`
-    font-size: 4rem;
+    position: absolute; /* Position the title absolutely inside the page */
+    top: 45%; /* Move the title vertically to the center of the page */
+    left: 50%; /* Move the title horizontally to the center of the page */
+    transform: translate(-50%, -50%); /* Adjust for exact centering */
+    font-size: 8rem; /* Increase the font size for the title */
     font-weight: 900;
     font-family: "kugile";
-    margin-top: 0.5rem;
-    color: #ac78ff; /* Light purple accent */
+    color: #fff; /* White color for the title */
     z-index: 2;
+    margin-top: 0;
   `,
   TopRightPanel: styled.div`
     position: absolute;
@@ -181,7 +195,7 @@ export const Styled = {
   `,
   FloatingIsland: styled.div`
     position: absolute;
-    top: 65%; /* Lower the floating island to leave space for the logo/title above */
+    top: 65%; /* Keep it as it is, this will keep the floating island lower */
     left: 0;
     right: 0;
     display: flex;
