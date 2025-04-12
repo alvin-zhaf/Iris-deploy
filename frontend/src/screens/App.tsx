@@ -1,4 +1,3 @@
-// App.tsx
 import { useState } from "react";
 import {
   BrowserRouter,
@@ -16,6 +15,7 @@ import {
   TooltipTrigger,
 } from "../components/Tooltip";
 import Logo from "../assets/logo.svg";
+import styled from "styled-components";
 
 function HomeScreen({
   walletAddress,
@@ -27,92 +27,67 @@ function HomeScreen({
   const navigate = useNavigate();
 
   return (
-    <div style={styles.homeContainer}>
+    <Styled.HomeContainer>
       {/* Background Canvas */}
       <DeformCanvas />
 
       {/* Logo and Title */}
-      <div style={styles.logoContainer}>
-        <img src={Logo} alt="Logo" style={styles.logoImage} />
-        <h1 style={styles.titleText}>IRIS</h1>
-      </div>
+      <Styled.LogoContainer>
+        <Styled.LogoImage src={Logo} alt="Logo" />
+        <Styled.TitleText>IRIS</Styled.TitleText>
+      </Styled.LogoContainer>
 
       {/* Top right wallet panel */}
-      <div style={styles.topRightPanel}>
+      <Styled.TopRightPanel>
         {walletAddress ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Button variant="default">
+                <Styled.ConnectButton variant="default">
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ position: "relative", display: "flex" }}>
-                      <span
-                        style={{
-                          position: "absolute",
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: "9999px",
-                          backgroundColor: "#4ade80",
-                          opacity: 0.75,
-                          animation: "ping 1s infinite",
-                        }}
-                      />
-                      <span
-                        style={{
-                          position: "relative",
-                          display: "inline-block",
-                          width: 12,
-                          height: 12,
-                          borderRadius: "9999px",
-                          backgroundColor: "#22c55e",
-                        }}
-                      />
+                      <span style={Styled.PulseStyles.pulseCircle} />
+                      <span style={Styled.PulseStyles.pulseDot} />
                     </div>
                     <span style={{ fontSize: 14 }}>Connected</span>
                   </div>
-                </Button>
+                </Styled.ConnectButton>
               </TooltipTrigger>
               <TooltipContent>
-                <p style={{ fontSize: 12, color: "#9ca3af", wordBreak: "break-all" }}>
+                <p style={{ fontSize: 12, color: "#cfcfcf", wordBreak: "break-all" }}>
                   {walletAddress}
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ) : (
-          <div style={{ position: "relative" }}>
-            <Button variant="default" onClick={connectWalletDirectly}>
-              <Wallet />
-              Connect Wallet
-            </Button>
-          </div>
+          <Styled.ConnectButton variant="default" onClick={connectWalletDirectly}>
+            <Wallet size={16} />
+            Connect Wallet
+          </Styled.ConnectButton>
         )}
-      </div>
+      </Styled.TopRightPanel>
 
       {/* Floating island for prompt UI */}
-      <div style={styles.floatingIsland}>
-        <div style={styles.glassmorphicContainer}>
-          <h1 style={styles.promptHeading}>What can I help with?</h1>
-          <div style={styles.promptBar}>
-            <input
-              type="text"
-              placeholder="Ask anything"
-              style={styles.promptInput}
-            />
-          </div>
-          <div style={styles.buttonRow}>
-            <Button variant="default" onClick={() => navigate("/agents")}>
-              <LayoutDashboard />
+      <Styled.FloatingIsland>
+        <Styled.GlassmorphicContainer>
+          <Styled.PromptHeading>What can I help with?</Styled.PromptHeading>
+          <Styled.PromptBar>
+            <Styled.PromptInput type="text" placeholder="Ask anything" />
+          </Styled.PromptBar>
+          <Styled.ButtonRow>
+            <Styled.ConnectButton onClick={() => navigate("/agents")}>
+              <LayoutDashboard size={18} />
               Dashboard
-            </Button>
-            <Button variant="default" onClick={() => navigate("/marketplace")}>
-              <Globe />
+            </Styled.ConnectButton>
+            <Styled.ConnectButton onClick={() => navigate("/marketplace")}>
+              <Globe size={18} />
               Marketplace
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Styled.ConnectButton>
+          </Styled.ButtonRow>
+        </Styled.GlassmorphicContainer>
+      </Styled.FloatingIsland>
+    </Styled.HomeContainer>
   );
 }
 
@@ -158,106 +133,160 @@ function App() {
 
 export default App;
 
-const styles = {
-  homeContainer: {
-    minHeight: "100vh",
-    backgroundColor: "#18181b",
-    color: "#ffffff",
-    position: "relative",
-  },
-  logoContainer: {
-    position: "absolute" as "absolute",
-    top: "16.66%",
-    left: 0,
-    right: 0,
-    display: "flex",
-    flexDirection: "column" as "column",
-    alignItems: "center",
-    justifyContent: "center",
-    pointerEvents: "none" as "none",
-  },
-  logoImage: {
-    width: "33.33%",
-    maxWidth: "32rem",
-    opacity: 0.4,
-  },
-  titleText: {
-    position: "absolute" as "absolute",
-    fontSize: "8rem",
-    fontWeight: 800,
-    opacity: 0.9,
-    marginTop: "7.5rem",
-    fontFamily: "kugile, sans-serif",
-    color: "#ffffff",
-  },
-  topRightPanel: {
-    position: "absolute" as "absolute",
-    top: "1rem",
-    right: "1rem",
-    display: "flex",
-    flexDirection: "column" as "column",
-    alignItems: "center",
-    gap: "0.5rem",
-  },
-  floatingIsland: {
-    position: "absolute" as "absolute",
-    top: "55%",
-    left: 0,
-    right: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "1rem",
-  },
-  glassmorphicContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(10px)",
-    borderRadius: "1.5rem",
-    padding: "2rem",
-    boxShadow: "0 10px 15px rgba(0, 0, 0, 0.2)",
-    width: "100%",
-    maxWidth: "32rem",
-    display: "flex",
-    flexDirection: "column" as "column",
-    gap: "1.5rem",
-  },
-  promptHeading: {
-    textAlign: "center" as "center",
-    fontSize: "2rem",
-    fontWeight: 600,
-  },
-  promptBar: {
-    display: "flex",
-    alignItems: "center",
-    backgroundColor: "#27272a",
-    borderRadius: "9999px",
-    boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-    padding: "0.5rem 1rem",
-    width: "28rem",
-    height: "3.5rem",
-  },
-  promptInput: {
-    flex: 1,
-    backgroundColor: "transparent",
-    border: "none",
-    outline: "none",
-    color: "#ffffff",
-    "::placeholder": {
-      color: "#9ca3af",
+/* ----------------------------------------------------------------------
+   STYLED COMPONENTS
+---------------------------------------------------------------------- */
+export const Styled = {
+  /* === Containers & Layout === */
+  HomeContainer: styled.div`
+    min-height: 100vh;
+    /* Purple gradient background */
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+  `,
+  /* Position the logo so it overlaps the glass container,
+     giving the impression that it’s emerging from it */
+  LogoContainer: styled.div`
+    position: absolute;
+    top: 3%; /* Move higher */
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: 2;
+  `,
+  LogoImage: styled.img`
+    width: 15vw;
+    max-width: 200px;
+    opacity: 0.9;
+    margin-bottom: -30px; /* Overlap the container */
+  `,
+  TitleText: styled.h1`
+    font-size: 4rem;
+    font-weight: 900;
+    margin-top: 0.5rem;
+    font-family: "kugile", sans-serif;
+    color: #ac78ff; /* Light purple accent */
+    z-index: 2;
+  `,
+  TopRightPanel: styled.div`
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 3;
+  `,
+  FloatingIsland: styled.div`
+    position: absolute;
+    top: 65%; /* Lower the floating island to leave space for the logo/title above */
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    transform: translateY(-50%);
+    z-index: 3;
+  `,
+  GlassmorphicContainer: styled.div`
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 32rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  `,
+  PromptHeading: styled.h1`
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: #ffffff;
+  `,
+  PromptBar: styled.div`
+    display: flex;
+    align-self: center;
+    background-color: rgba(255, 255, 255, 0.07);
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    width: 90%;
+    height: 2.5rem;
+  `,
+  PromptInput: styled.input`
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-size: 1.2rem;
+    padding: 0.2rem 0.5rem;
+    &::placeholder {
+      color: #c0c0c0;
+    }
+    width: 30%;
+    align-self: center;
+  `,
+  ButtonRow: styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: space-between;
+    @media (min-width: 640px) {
+      flex-direction: row;
+    }
+  `,
+
+  /* === Buttons (Uniform style for wallet, dashboard, and marketplace) === */
+  ConnectButton: styled(Button)`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    color: #ffffff;
+    background-color: #7f56d9;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    &:hover {
+      background-color: #9b66ff;
+    }
+    &:active {
+      transform: scale(0.98);
+    }
+  `,
+
+  /* === Small Inline Styles for animated pulse === */
+  PulseStyles: {
+    pulseCircle: {
+      position: "absolute" as const,
+      width: "100%",
+      height: "100%",
+      borderRadius: "9999px",
+      backgroundColor: "#22c55e",
+      opacity: 0.6,
+      animation: "ping 1s infinite",
     },
-  },
-  buttonRow: {
-    display: "flex",
-    flexDirection: "column" as "column",
-    gap: "1rem",
-    justifyContent: "space-between",
-    // Media queries are not directly supported in inline styles.
-    // For responsive behavior in React (web), consider using CSS or a library.
-  },
-  fullScreenContainer: {
-    minHeight: "100vh",
-  },
-  header: {
-    padding: "1rem",
+    pulseDot: {
+      position: "relative" as const,
+      display: "inline-block",
+      width: "0.75rem",
+      height: "0.75rem",
+      borderRadius: "9999px",
+      backgroundColor: "#22c55e",
+    },
   },
 };
