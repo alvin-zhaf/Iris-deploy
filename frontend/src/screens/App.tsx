@@ -64,40 +64,34 @@ function HomeScreen({
         {walletAddress ? (
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger>
-                <Styled.ConnectButton variant="default">
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <div style={{ position: "relative", display: "flex" }}>
-                      <span style={Styled.PulseStyles.pulseCircle} />
-                      <span style={Styled.PulseStyles.pulseDot} />
+              <TooltipTrigger asChild>
+                <Styled.WalletStatusDisplay>
+                  <div className="flex-container">
+                    <div className="pulse-container">
+                      <span className="pulse-ping"></span>
+                      <span className="pulse-dot"></span>
                     </div>
-                    <span style={{ fontSize: 14 }}>Connected</span>
+                    <span className="connected-text">Connected</span>
                   </div>
-                </Styled.ConnectButton>
+                </Styled.WalletStatusDisplay>
               </TooltipTrigger>
               <TooltipContent>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "#cfcfcf",
-                    wordBreak: "break-all",
-                  }}
-                >
+                <p className="wallet-address">
                   {walletAddress}
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ) : (
-          <Styled.ConnectButton
-            variant="default"
-            onClick={connectWalletDirectly}
-          >
-            <Wallet size={16} />
-            Connect Wallet
-          </Styled.ConnectButton>
+          <div className="wallet-button-container">
+            <Styled.ConnectButton
+              variant="default"
+              onClick={connectWalletDirectly}
+            >
+              <Wallet size={16} />
+              Connect Wallet
+            </Styled.ConnectButton>
+          </div>
         )}
       </Styled.TopRightPanel>
 
@@ -358,6 +352,65 @@ export const Styled = {
     }
     &:active {
       transform: scale(0.98);
+    }
+  `,
+
+  /* === Connected Status Styling === */
+  WalletStatusDisplay: styled.div`
+    /* Match ConnectButton dimensions */
+    height: 2.5rem;
+    padding: 0 1rem;
+    background-color: #27272a;
+    border-radius: 9999px;
+    color: #ffffff;
+    cursor: pointer;
+    
+    /* Match ConnectButton display properties */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    & .flex-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      height: 100%;
+    }
+    
+    & .pulse-container {
+      position: relative;
+      display: flex;
+    }
+    
+    & .pulse-ping {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      border-radius: 9999px;
+      background-color: #4ade80;
+      opacity: 0.75;
+      animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    
+    & .pulse-dot {
+      position: relative;
+      display: inline-flex;
+      height: 0.75rem;
+      width: 0.75rem;
+      border-radius: 9999px;
+      background-color: #22c55e;
+    }
+    
+    & .connected-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    @keyframes ping {
+      75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+      }
     }
   `,
 
