@@ -2,9 +2,6 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import styled, { css } from "styled-components";
 
-// ----------------------------------------------------------------------
-// Define base styles and variant/size mappings
-// ----------------------------------------------------------------------
 const baseStyles = css`
   display: inline-flex;
   align-items: center;

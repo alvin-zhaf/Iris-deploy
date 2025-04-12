@@ -1,0 +1,122 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "data",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "address[]",
+						"name": "contractAddresses",
+						"type": "address[]"
+					}
+				],
+				"name": "RequestData",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "callingAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "data",
+						"type": "string"
+					},
+					{
+						"internalType": "address[]",
+						"name": "contractAddresses",
+						"type": "address[]"
+					}
+				],
+				"name": "callOtherContracts",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "data",
+						"type": "string"
+					},
+					{
+						"internalType": "address[]",
+						"name": "contractAddresses",
+						"type": "address[]"
+					}
+				],
+				"name": "requestData",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"w3-contracts/Agent.sol": "Agent"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"w3-contracts/Agent.sol": {
+			"keccak256": "0xc4c5fbc3edc28fe4825863260ecd621d9a71546a1d5445c3695dcab41c2a0546",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://0882f5275c25ab417d5ccb4c72928beb230709a8155da80d5bc674f9a2451914",
+				"dweb:/ipfs/QmSXSKp9hsSMmd4GvmUtFByjYymhFxbH1Jqgn5WZVdm8iz"
+			]
+		}
+	},
+	"version": 1
+}
