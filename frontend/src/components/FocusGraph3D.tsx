@@ -5,6 +5,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { CSS2DRenderer, CSS2DObject } from 'https://esm.sh/three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Vector2 } from 'three';
 import { hashString } from 'react-hash-string';
+import Popup from './FocusPopup';
 
 const FocusGraph3D: React.FC = () => {
   const fgRef = useRef<any>(null);
@@ -480,9 +481,7 @@ const FocusGraph3D: React.FC = () => {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {showImage && (
-        <img
-          src="https://robertsspaceindustries.com/rsi/static/svg/disc.svg"
-          alt="Center Image"
+        <div
           style={{
             position: 'absolute',
             top: '50%',
@@ -493,7 +492,9 @@ const FocusGraph3D: React.FC = () => {
             opacity: imageOpacity,
             transition: 'opacity 300ms ease-in-out'
           }}
-        />
+        >
+          <Popup />
+        </div>
       )}
       <ForceGraph3D
         ref={fgRef}
