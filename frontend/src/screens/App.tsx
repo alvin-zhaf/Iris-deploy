@@ -6,18 +6,16 @@ import {
   Route,
   useNavigate,
 } from "react-router-dom";
-import { Button } from "./components/button";
-import AgentsDashboard from "./Dashboard";
-import { ReactFlowProvider } from "@xyflow/react";
-import DeformCanvas from "./components/DeformCanvas";
+import { Button } from "../components/Button";
+import DeformCanvas from "../components/DeformCanvas";
 import { Globe, LayoutDashboard, Wallet } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "./components/ui/tooltip";
-import Logo from "./assets/logo.svg"; // Import the logo SVG file
+} from "../components/Tooltip";
+import Logo from "../assets/logo.svg";
 
 function HomeScreen({
   walletAddress,
@@ -118,58 +116,6 @@ function HomeScreen({
   );
 }
 
-// Wrapper for FlowPage with a Back button
-function FlowPageWrapper() {
-  return (
-    <div style={styles.fullScreenContainer}>
-      <ReactFlowProvider>
-        <FlowPage />
-      </ReactFlowProvider>
-    </div>
-  );
-}
-
-function MarketplaceWrapper() {
-  return (
-    <div style={styles.fullScreenContainer}>
-      <Marketplace />
-    </div>
-  );
-}
-
-// Wrapper for WormholeScreen with a Back button
-function WormholeWrapper() {
-  const navigate = useNavigate();
-  return (
-    <div style={styles.fullScreenContainer}>
-      <header style={styles.header}>
-        <Button variant="outline" onClick={() => navigate("/")}>
-          Back
-        </Button>
-      </header>
-      <WormholeScreen />
-    </div>
-  );
-}
-
-// Wrapper for AgentsDashboard
-function AgentsDashboardWrapper() {
-  return (
-    <div style={styles.fullScreenContainer}>
-      <AgentsDashboard />
-    </div>
-  );
-}
-
-// Wrapper for Marketreg
-function MarketregWrapper() {
-  return (
-    <div style={styles.fullScreenContainer}>
-      <Marketreg />
-    </div>
-  );
-}
-
 function App() {
   const [walletAddress, setWalletAddress] = useState<string>("");
 
@@ -205,12 +151,6 @@ function App() {
             />
           }
         />
-        <Route path="/flowpage" element={<FlowPageWrapper />} />
-        <Route path="/flowpage/:agentId" element={<FlowPageWrapper />} />
-        <Route path="/wormhole" element={<WormholeWrapper />} />
-        <Route path="/agents" element={<AgentsDashboardWrapper />} />
-        <Route path="/marketplace" element={<MarketplaceWrapper />} />
-        <Route path="/marketreg" element={<MarketregWrapper />} />
       </Routes>
     </BrowserRouter>
   );
@@ -221,7 +161,7 @@ export default App;
 const styles = {
   homeContainer: {
     minHeight: "100vh",
-    backgroundColor: "#18181b", // Equivalent to bg-zinc-900
+    backgroundColor: "#18181b",
     color: "#ffffff",
     position: "relative",
   },
