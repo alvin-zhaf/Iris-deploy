@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Button } from "../components/Button";
 import DeformCanvas from "../components/DeformCanvas";
-import { Globe, LayoutDashboard, Wallet } from "lucide-react";
+import { Globe, LayoutDashboard, Wallet, Bot } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -87,6 +87,10 @@ function HomeScreen({
             <Styled.ConnectButton onClick={() => navigate("/dashboard")}>
               <LayoutDashboard size={18} />
               Dashboard
+            </Styled.ConnectButton>
+            <Styled.ConnectButton onClick={() => navigate("/agents")}>
+              <Bot size={18} />
+              Agent
             </Styled.ConnectButton>
             <Styled.ConnectButton onClick={() => navigate("/marketplace")}>
               <Globe size={18} />
