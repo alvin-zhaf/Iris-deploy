@@ -209,9 +209,6 @@ function App() {
 
 export default App;
 
-/* ----------------------------------------------------------------------
-   STYLED COMPONENTS
----------------------------------------------------------------------- */
 export const Styled = {
   /* === Containers & Layout === */
   HomeContainer: styled.div`
