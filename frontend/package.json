@@ -20,6 +20,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-force-graph-3d": "^1.26.1",
+    "react-hash-string": "^1.0.0",
     "react-router-dom": "^7.5.0",
     "styled-components": "^6.1.17",
     "three": "^0.175.0"

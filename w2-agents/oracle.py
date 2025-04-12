@@ -11,6 +11,8 @@ from rich.logging import RichHandler
 import logging
 from web3 import Web3
 
+import agent
+
 
 agent_abi = [
 	{
@@ -106,30 +108,7 @@ def trigger_external_action(*args):
     if random.random() < 0:
         logger.log("[bold green]Passing to next AI...[/]")
         # Call the contract function
-        try:
-            next_address = 0
-            agent = w3.eth.contract(address=next_address, abi=agent_abi)
-            agent_function = agent.functions.requestData(args[0], args[1])
-            
-            nonce = w3.eth.get_transaction_count(os.getenv('WALLET_ADDR'))
-            tx = agent_function.build_transaction({
-                'from': os.getenv('WALLET_ADDR'),
-                'gas': 2000000,
-                'gasPrice': w3.eth.gas_price,
-                'nonce': nonce,
-                'chainId': w3.eth.chain_id
-            })
-            
-            signed_tx = w3.eth.account.sign_transaction(tx, os.getenv('WALLET_PKEY'))
-            tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-            logger.info(f"Transaction sent: {tx_hash.hex()}")
-            
-            logger.info("Waiting for transaction confirmation...")
-            receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-            
-        except Exception as e:
-            console.print(f"[bold red]Failed to call contract function: {e}[/]")
-            logger.exception("Exception occurred while calling contract function.")
+        agent.call_contract_function(w3, args[0], args[1], logger, "")
     else:
         logger.log("[bold red]Failed to pass to next AI.[/]")
     
