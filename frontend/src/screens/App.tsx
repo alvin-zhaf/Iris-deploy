@@ -12,6 +12,7 @@ import {
 import Logo from "../assets/logo.svg";
 import styled from "styled-components";
 import Dashboard from "./Dashboard";
+import Agents from "./Agents";
 
 function HomeScreen({
   walletAddress,
@@ -134,6 +135,7 @@ function App() {
           }
         />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/agents" element={<Agents />} />
       </Routes>
     </BrowserRouter>
   );
