@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import {
   BarChart,
   LineChart,
@@ -11,9 +11,43 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// ----------------------------------------------------------
-// Layout Container
-// ----------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/*                              Keyframe Animations                           */
+/* -------------------------------------------------------------------------- */
+
+// Glow effect for success
+const glow = keyframes`
+  0% { box-shadow: 0 0 6px rgba(40, 167, 69, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(40, 167, 69, 0.8); }
+  100% { box-shadow: 0 0 6px rgba(40, 167, 69, 0.4); }
+`;
+
+// Pulsing ring for inProgress
+const pulseRing = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(255,165,0, 0.6); }
+  50% { box-shadow: 0 0 0 10px rgba(255,165,0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,165,0, 0); }
+`;
+
+// Slight shake for failure
+const flicker = keyframes`
+  0% { transform: translateX(0); }
+  10% { transform: translateX(-1px); }
+  20% { transform: translateX(1px); }
+  30% { transform: translateX(-1px); }
+  40% { transform: translateX(1px); }
+  50% { transform: translateX(-1px); }
+  60% { transform: translateX(1px); }
+  70% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+  90% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+`;
+
+/* -------------------------------------------------------------------------- */
+/*                              Dashboard Styles                              */
+/* -------------------------------------------------------------------------- */
+
 const DashboardContainer = styled.div`
   display: flex;
   width: 100vw;
@@ -23,9 +57,9 @@ const DashboardContainer = styled.div`
   background-size: 20px 20px;
 `;
 
-// ----------------------------------------------------------
-// Sidebar Styling (Expandable)
-// ----------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/*                            Sidebar Components                            */
+/* -------------------------------------------------------------------------- */
 interface SidebarProps {
   expanded: boolean;
 }
@@ -46,7 +80,6 @@ const Sidebar = styled.div<SidebarProps>`
   transition: width 0.3s ease;
 `;
 
-// Branding area with logo and text
 const Branding = styled.div<SidebarProps>`
   display: flex;
   align-self: center;
@@ -66,12 +99,11 @@ const Branding = styled.div<SidebarProps>`
     font-weight: 600;
     white-space: nowrap;
     display: ${(props) => (props.expanded ? "block" : "none")};
-    line-height: 40px; /* Align text vertically with the 40px logo */
+    line-height: 40px;
   }
-    font-family: "kugile", sans-serif;
+  font-family: "kugile", sans-serif;
 `;
 
-// Container for the icons with labels
 const IconsWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -80,7 +112,6 @@ const IconsWrapper = styled.div`
   align-items: center;
 `;
 
-// Individual icon item (centered)
 const IconItem = styled.div<SidebarProps>`
   display: flex;
   align-items: center;
@@ -91,24 +122,17 @@ const IconItem = styled.div<SidebarProps>`
   border-radius: 6px;
   transition: background 0.2s ease;
   
-  &:hover {
-    background: rgba(127, 86, 217, 0.15);
-  }
+  &:hover { background: rgba(127, 86, 217, 0.15); }
   
-  svg {
-    stroke: #fff;
-    transition: stroke 0.2s ease;
-  }
+  svg { stroke: #fff; transition: stroke 0.2s ease; }
 `;
 
-// Label next to the icon when expanded
 const IconLabel = styled.span`
   margin-left: 0.5rem;
   font-size: 1rem;
   white-space: nowrap;
 `;
 
-// Sidebar Exit Button styling using a distinct exit icon (LogOut)
 const ExitButton = styled.button<SidebarProps>`
   display: flex;
   align-items: center;
@@ -123,9 +147,7 @@ const ExitButton = styled.button<SidebarProps>`
   margin-top: 2rem;
   transition: all 0.2s ease;
   
-  &:hover {
-    color: #a288f4;
-  }
+  &:hover { color: #a288f4; }
   
   span {
     margin-left: 0.5rem;
@@ -134,7 +156,6 @@ const ExitButton = styled.button<SidebarProps>`
   }
 `;
 
-// Toggle button container at the bottom of the sidebar
 const ToggleContainer = styled.div<SidebarProps>`
   margin-top: auto;
   width: 100%;
@@ -144,9 +165,9 @@ const ToggleContainer = styled.div<SidebarProps>`
   padding: 0.5rem;
 `;
 
-// ----------------------------------------------------------
-// Main Content Area (to the right of the Sidebar)
-// ----------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/*                           Main Content Area                                */
+/* -------------------------------------------------------------------------- */
 interface ContentAreaProps {
   expanded: boolean;
 }
@@ -159,25 +180,104 @@ const ContentArea = styled.div<ContentAreaProps>`
   transition: margin-left 0.3s ease;
 `;
 
-// ----------------------------------------------------------
-// Content Panel Animations
-// ----------------------------------------------------------
-const fadeIn = keyframes`
-  0% { opacity: 0; transform: translateY(-10px); }
-  100% { opacity: 1; transform: translateY(0); }
-`;
-
-const ContentPanel = styled.div`
-  background-color: #1a1a1a;
-  border: 1px solid rgba(127, 86, 217, 0.3);
+/* -------------------------------------------------------------------------- */
+/*                      Workflow Heading Banner (Optional)                  */
+/* -------------------------------------------------------------------------- */
+const WorkflowHeadingBanner = styled.div`
+  background-color: rgba(127,86,217,0.15);
+  border: 1px solid rgba(127,86,217,0.5);
   border-radius: 8px;
-  padding: 1.5rem;
-  animation: ${fadeIn} 0.3s ease-out;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  text-align: center;
 `;
 
-// ----------------------------------------------------------
-// Workflow (GitHub Actions–Style) Content
-// ----------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/*                    New Vertical Timeline (Without Line)                  */
+/* -------------------------------------------------------------------------- */
+
+// Container for timeline items
+const VerticalTimelineContainer = styled.div`
+  position: relative;
+  margin: 2rem 0;
+`;
+
+// Each timeline item is a flex row with a circle on the left and content on the right.
+const TimelineItem = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 2.5rem;
+`;
+
+// The animated circle for each item
+const TimelineDot = styled.div<{ status: string }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  font-weight: bold;
+  color: #000;
+
+  background-color: ${({ status }) => {
+    switch (status) {
+      case "success":
+        return "#28a745";
+      case "inProgress":
+        return "#ffa500";
+      case "failure":
+        return "#dc3545";
+      default:
+        return "#777";
+    }
+  }};
+
+  animation: ${({ status }) => {
+    switch (status) {
+      case "success":
+        return css`${glow} 2s infinite`;
+      case "inProgress":
+        return css`${pulseRing} 2s infinite`;
+      case "failure":
+        return css`${flicker} 0.7s infinite`;
+      default:
+        return "none";
+    }
+  }};
+
+  &:hover { transform: scale(1.15); }
+`;
+
+// The content card for each timeline item
+const TimelineContent = styled.div`
+  background-color: #1a1a1a;
+  border: 1px solid rgba(127,86,217,0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-left: 1rem;
+  flex: 1;
+`;
+
+const TimelineTitle = styled.h3`
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+`;
+
+const TimelineDetail = styled.p`
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ccc;
+`;
+
+/* -------------------------------------------------------------------------- */
+/*                      Dummy Workflow Data                                 */
+/* -------------------------------------------------------------------------- */
 const dummyWorkflows = [
   {
     id: "KPD-136",
@@ -196,98 +296,57 @@ const dummyWorkflows = [
     title: "Main navigation",
     detail: "CI #225 synchronize by joleenk",
     status: "failure"
+  },
+  {
+    id: "AG-999",
+    title: "Additional agent check",
+    detail: "Not started or waiting for resources",
+    status: "pending"
   }
 ];
 
-const WorkflowHeadingBanner = styled.div`
-  background-color: rgba(127, 86, 217, 0.15);
-  border: 1px solid rgba(127, 86, 217, 0.5);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-  text-align: center;
-`;
-
-const WorkflowList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const WorkflowItem = styled.li`
-  display: flex;
-  align-items: center;
-  background: rgba(25, 25, 25, 0.75);
-  margin-bottom: 1rem;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid rgba(127, 86, 217, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  
-  &:hover {
-    background: rgba(25, 25, 25, 0.9);
-  }
-`;
-
-const StatusCircle = styled.div<{ status: string }>`
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  margin-right: 1rem;
-  flex-shrink: 0;
-  background-color: ${(props) => {
-    switch (props.status) {
-      case "success":
-        return "#28a745";
-      case "inProgress":
-        return "#ffa500";
-      case "failure":
-        return "#dc3545";
-      default:
-        return "#aaa";
-    }
-  }};
-`;
-
-const WorkflowText = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const WorkflowTitle = styled.span`
-  font-weight: bold;
-`;
-
-const WorkflowDetail = styled.span`
-  font-size: 0.9rem;
-  color: #ccc;
-`;
-
-const WorkflowPanel: React.FC = () => {
+/* -------------------------------------------------------------------------- */
+/*                        WorkflowTimeline Component                          */
+/* -------------------------------------------------------------------------- */
+const WorkflowTimeline: React.FC = () => {
   return (
-    <ContentPanel>
+    <>
       <WorkflowHeadingBanner>
         This workflow has a <strong>workflow_dispatch</strong> event trigger
       </WorkflowHeadingBanner>
-      <WorkflowList>
+      <VerticalTimelineContainer>
         {dummyWorkflows.map((wf, index) => (
-          <WorkflowItem key={index}>
-            <StatusCircle status={wf.status} />
-            <WorkflowText>
-              <WorkflowTitle>{`${wf.id} - ${wf.title}`}</WorkflowTitle>
-              <WorkflowDetail>{wf.detail}</WorkflowDetail>
-            </WorkflowText>
-          </WorkflowItem>
+          <TimelineItem key={index}>
+            <TimelineDot status={wf.status} title={`${wf.id} - ${wf.title}\n${wf.detail}`}>
+              {index + 1}
+            </TimelineDot>
+            <TimelineContent>
+              <TimelineTitle>{`${wf.id} - ${wf.title}`}</TimelineTitle>
+              <TimelineDetail>{wf.detail}</TimelineDetail>
+            </TimelineContent>
+          </TimelineItem>
         ))}
-      </WorkflowList>
-    </ContentPanel>
+      </VerticalTimelineContainer>
+    </>
   );
 };
 
-// ----------------------------------------------------------
-// Placeholder Panel for Other Icons
-// ----------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/*                          Content Panel & InfoPanel                         */
+/* -------------------------------------------------------------------------- */
+const panelFadeIn = keyframes`
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+`;
+
+const ContentPanel = styled.div`
+  background-color: #1a1a1a;
+  border: 1px solid rgba(127,86,217,0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  animation: ${panelFadeIn} 0.3s ease-out;
+`;
+
 const InfoPanel: React.FC<{ title: string; content: string }> = ({ title, content }) => (
   <ContentPanel>
     <h2>{title}</h2>
@@ -295,26 +354,21 @@ const InfoPanel: React.FC<{ title: string; content: string }> = ({ title, conten
   </ContentPanel>
 );
 
-// ----------------------------------------------------------
-// Main Dashboard Component (with Expandable Sidebar, Exit Button & Inline Content Panels)
-// ----------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/*                           Main Dashboard Component                         */
+/* -------------------------------------------------------------------------- */
 const Dashboard: React.FC = () => {
-  // Track which content panel is active
   const [activePanel, setActivePanel] = useState<"workflow" | "line" | "pie" | "area" | null>(null);
-  // Toggle state of sidebar (expanded/collapsed)
   const [isSidebarExpanded, setSidebarExpanded] = useState<boolean>(false);
   const navigate = useNavigate();
 
   return (
     <DashboardContainer>
       <Sidebar expanded={isSidebarExpanded}>
-        {/* Branding */}
         <Branding expanded={isSidebarExpanded}>
           <img src="logo.svg" alt="Logo" />
           <span>Iris</span>
         </Branding>
-
-        {/* Icons */}
         <IconsWrapper>
           <IconItem expanded={isSidebarExpanded} onClick={() => setActivePanel("workflow")}>
             <BarChart size={30} />
@@ -333,24 +387,16 @@ const Dashboard: React.FC = () => {
             {isSidebarExpanded && <IconLabel>Area Chart</IconLabel>}
           </IconItem>
         </IconsWrapper>
-
-        {/* Exit Button */}
-        <ExitButton
-          expanded={isSidebarExpanded}
-          onClick={() => navigate("/")}
-        >
+        <ExitButton expanded={isSidebarExpanded} onClick={() => navigate("/")}>
           <LogOut size={20} />
           <span>Exit</span>
         </ExitButton>
-
-        {/* Toggle Button */}
         <ToggleContainer expanded={isSidebarExpanded} onClick={() => setSidebarExpanded(prev => !prev)}>
           {isSidebarExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
         </ToggleContainer>
       </Sidebar>
-
       <ContentArea expanded={isSidebarExpanded}>
-        {activePanel === "workflow" && <WorkflowPanel />}
+        {activePanel === "workflow" && <WorkflowTimeline />}
         {activePanel === "line" && (
           <InfoPanel
             title="Line Chart Details"
