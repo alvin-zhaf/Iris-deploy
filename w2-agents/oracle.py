@@ -3,12 +3,93 @@ load_dotenv()
 
 import requests
 import os
+import time
 from rich.console import Console
 from rich.traceback import install
 from rich.status import Status
 from rich.logging import RichHandler
 import logging
 from web3 import Web3
+
+
+oracle_contract_abi = [
+	{
+		"anonymous": False,
+		"inputs": [
+			{
+				"indexed": True,
+				"internalType": "address",
+				"name": "userAddress",
+				"type": "address"
+			},
+			{
+				"indexed": False,
+				"internalType": "string",
+				"name": "data",
+				"type": "string"
+			},
+			{
+				"indexed": False,
+				"internalType": "address[]",
+				"name": "contractAddresses",
+				"type": "address[]"
+			}
+		],
+		"name": "RequestData",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "userAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "callingAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "data",
+				"type": "string"
+			},
+			{
+				"internalType": "address[]",
+				"name": "contractAddresses",
+				"type": "address[]"
+			}
+		],
+		"name": "callOtherContracts",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "userAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "data",
+				"type": "string"
+			},
+			{
+				"internalType": "address[]",
+				"name": "contractAddresses",
+				"type": "address[]"
+			}
+		],
+		"name": "requestData",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
 
 # Setup rich and logging
 install()
@@ -24,10 +105,6 @@ except Exception as e:
     raise
 
 try:
-    contract_address = w3.to_checksum_address(os.getenv('CONTRACT_ADDR'))
-    oracle_contract_abi = [
-        # ABI of the oracle contract
-    ]
     oracle_contract = w3.eth.contract(address=os.getenv('ORACLE_ADDR'), abi=oracle_contract_abi)
     logger.info("Oracle contract initialized.")
 except Exception as e:
@@ -74,7 +151,9 @@ def listen_for_contract_requests():
     try:
         with Status("[bold green]Listening for contract requests...[/bold green]", console=console):
             while True:
-                events = oracle_contract.events.YourEvent.createFilter(fromBlock='latest').get_new_entries()
+                # Wait 3 seconds - DO NOT REMOVE
+                time.sleep(3)
+                events = oracle_contract.events.RequestData.create_filter(from_block='latest').get_new_entries()
                 for event in events:
                     logger.info(f"Event received: {event}")
                     if event['event'] == 'RequestData':
