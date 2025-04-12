@@ -17,6 +17,7 @@ import {
 import Logo from "../assets/logo.svg";
 import styled from "styled-components";
 
+
 function HomeScreen({
   walletAddress,
   connectWalletDirectly,
@@ -167,8 +168,8 @@ export const Styled = {
   TitleText: styled.h1`
     font-size: 4rem;
     font-weight: 900;
+    font-family: "kugile";
     margin-top: 0.5rem;
-    font-family: "kugile", sans-serif;
     color: #ac78ff; /* Light purple accent */
     z-index: 2;
   `,
