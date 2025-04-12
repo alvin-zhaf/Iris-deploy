@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { BarChart, LineChart, PieChart, AreaChart } from "lucide-react";
+import FocusGraph3D from "../components/viz/FocusGraph3D";
 
 // Container for the whole page with a dotted background.
 const DashboardContainer = styled.div`
@@ -37,6 +38,7 @@ const Dashboard: React.FC = () => {
         <PieChart size={40} color="#7f56d9" style={{ margin: "0 2rem" }} />
         <AreaChart size={40} color="#7f56d9" style={{ margin: "0 2rem" }} />
       </IconsWrapper>
+      <FocusGraph3D />
     </DashboardContainer>
   );
 };

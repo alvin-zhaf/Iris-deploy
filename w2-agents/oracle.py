@@ -113,11 +113,10 @@ except Exception as e:
 
 def trigger_external_action():
     try:
-        with Status("[bold green]Calling Web2 API...[/bold green]", console=console):
-            api_url = "https://example.com/api"
-            data = {"key": "value"}  # Sample data to send in the POST request
-            response = requests.post(api_url, json=data)
-            logger.info(f"Web2 API call to {api_url} completed with status code {response.status_code}.")
+        api_url = "https://example.com/api"
+        data = {"key": "value"}  # Sample data to send in the POST request
+        response = requests.post(api_url, json=data)
+        logger.info(f"Web2 API call to {api_url} completed with status code {response.status_code}.")
 
         if response.status_code == 200:
             api_response_data = response.json().get("data")
@@ -150,18 +149,18 @@ def trigger_external_action():
 def listen_for_contract_requests():
     try:
         with Status("[bold green]Listening for contract requests...[/bold green]", console=console):
+            event_filter = oracle_contract.events.RequestData.create_filter(from_block='latest')  # Creates the filter to listen for events from the latest block
             while True:
-                # Wait 3 seconds - DO NOT REMOVE
-                time.sleep(3)
-                events = oracle_contract.events.RequestData.create_filter(from_block='latest').get_new_entries()
+                # Poll every 3 seconds
+                events = event_filter.get_new_entries()  # Get new entries (events) that have been emitted
                 for event in events:
                     logger.info(f"Event received: {event}")
                     if event['event'] == 'RequestData':
-                        trigger_external_action()
+                        trigger_external_action()  # Trigger the external action when the event is found
+                time.sleep(3)  # Delay between checks to avoid unnecessary load
     except Exception as e:
         console.print(f"[bold red]Error in listen_for_contract_requests: {e}[/bold red]")
         logger.exception("Exception occurred in listen_for_contract_requests.")
-
 
 if __name__ == "__main__":
     try:
