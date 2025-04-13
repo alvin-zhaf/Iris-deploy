@@ -95,7 +95,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=[RichHand
 logger = logging.getLogger("oracle")
 
 try:
-    w3 = Web3(Web3.HTTPProvider(f"https://sepolia.infura.io/v3/{os.getenv('INFURA_API_KEY')}"))
+    w3 = Web3(Web3.HTTPProvider(f"https://eth-sepolia.g.alchemy.com/v2/{os.getenv('ALCHEMY_API_KEY')}"))
     logger.info("Connected to Web3 provider.")
 except Exception as e:
     console.print(f"[bold red]Failed to connect to Web3 provider: {e}[/]")
@@ -115,6 +115,7 @@ async def trigger_external_action(me, *args):
     hops = args[3]
     agents = [a for a in db.list_agent() if a["address"] != me]
     my_agent = [a for a in db.list_agent() if a["address"] == me][0]
+    hopnames = [agent["id"] for agent in agents if agent["address"] in hops] + [my_agent["id"]]
     tools = [{
 		"type": "function",
             "function": {
@@ -130,25 +131,27 @@ async def trigger_external_action(me, *args):
                     },
                     "required": ["input"]
                 }
-            }
+            }        
 	} for agent in agents]
     
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     
     system_prompt = (
+        f"DO NOT RUN: {','.join(hopnames)} (important)."
         "You are a routing system for a multi-agent blockchain service network. "
         "You need to determine which service should process the input next based on the query, "
-        "the current service, and its response. You may choose one of the provided tools, OR just respond if you have the answer to the query."
+        "You may choose one of the provided tools, OR just respond if you have the answer to the query."
         "Select the service that would be most helpful for the next step in processing this request."
-        "Your skills include: "
-        f"{my_agent['description']}. "
+        f"Your skills include: {my_agent['description']}."
     )
+    
+    print(system_prompt)
     
     response = client.chat.completions.create(
         model="gpt-4o",
 		messages=[
 			{"role": "system", "content": system_prompt},
-			{"role": "user", "content": f"Query: {data}"},
+			{"role": "user", "content": f"Context: {original}\nQuery: {data}"},
 		],
 		tools=tools,
 		tool_choice="auto"
@@ -156,8 +159,8 @@ async def trigger_external_action(me, *args):
     
     # Debug response
     logger.info(f"Response tool calls: {response.choices[0].message.tool_calls}")
-    logger.info(f"Response tool call function input: {eval(response.choices[0].message.tool_calls[0].function.arguments)["input"]}")
-    logger.info(f"Response message: {response.choices[0].message.content}")
+    # logger.info(f"Response tool call function input: {eval(response.choices[0].message.tool_calls[0].function.arguments)["input"]}")
+    # logger.info(f"Response message: {response.choices[0].message.content}")
     
     if response.choices[0].message.tool_calls:
         next_name = response.choices[0].message.tool_calls[0].function.name
