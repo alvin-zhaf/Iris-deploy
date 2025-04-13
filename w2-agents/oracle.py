@@ -128,6 +128,7 @@ async def trigger_external_action(me, *args):
                 "current_agent": my_agent
             }
         })
+    agents = [a for a in agents if a["address"] not in hops]
     tools = [{
 		"type": "function",
             "function": {
