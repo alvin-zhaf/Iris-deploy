@@ -121,23 +121,23 @@ def query_google_maps(query, location=None):
             return "Error: Google Maps API key not found in environment variables."
         
         # Format the query correctly
-        search_query = query
-        if location:
-            search_query = f"{query} in {location}"
+        # search_query = query
+        # if location:
+        #     search_query = f"{query} in {location}"
         
-        # Find the location from the query if not explicitly provided
-        if not location:
-            # Try to extract location from the query using simple heuristics
-            location_keywords = ["in ", "near ", "at ", "around "]
-            for keyword in location_keywords:
-                if keyword in query.lower():
-                    location = query.lower().split(keyword)[1].strip()
-                    break
+        # # Find the location from the query if not explicitly provided
+        # if not location:
+        #     # Try to extract location from the query using simple heuristics
+        #     location_keywords = ["in ", "near ", "at ", "around "]
+        #     for keyword in location_keywords:
+        #         if keyword in query.lower():
+        #             location = query.lower().split(keyword)[1].strip()
+        #             break
         
         # Places API request
         base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
         params = {
-            "query": search_query,
+            "query": query,
             "key": api_key
         }
         
@@ -158,9 +158,9 @@ def query_google_maps(query, location=None):
             results.append(f"• {name}\n  Address: {address}\n  Rating: {rating}/5 ({total_ratings} reviews)")
         
         if results:
-            return f"Here are some places I found for '{search_query}':\n\n" + "\n\n".join(results)
+            return f"Here are some places I found for '{query}':\n\n" + "\n\n".join(results)
         else:
-            return f"No places found for '{search_query}'."
+            return f"No places found for '{query}'."
             
     except Exception as e:
         logger.error(f"Error querying Google Maps API: {e}")

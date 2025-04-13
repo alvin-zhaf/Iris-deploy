@@ -83,7 +83,7 @@ INITIAL_AGENTS = [
     },
     {
         "name": "Google Maps",
-        "description": "Mixes decentralized beats and spins tunes on chain, creating a unique soundtrack for your blockchain vibe.",
+        "description": "Searches google maps for places using PlacesAPI.",
         "id": "google_maps"
     },
     {
