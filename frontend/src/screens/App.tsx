@@ -18,19 +18,15 @@ import styled, { keyframes, css } from "styled-components";
 import Agents from "./Agents";
 import Dashboard from "./Dashboard";
 
-/* ================================================
-   Types and Interfaces
-   ================================================ */
+// --------- Types and Interfaces ---------
 interface Workflow {
   id: string;
   title: string;
   detail: string;
-  status: "progress_started" | "progress_finished" | "inProgress" | "failure" | "response";
+  status: "progress_started" | "progress_finished" | "inProgress" | "failure" | "response" | "pending";
 }
 
-/* ================================================
-   ModalWorkflow Component – Displays Workflow Timeline
-   ================================================ */
+// --------- ModalWorkflow Component – Displays Workflow Timeline ---------
 interface ModalWorkflowProps {
   workflows: Workflow[];
   onClose: () => void;
@@ -63,7 +59,7 @@ const flicker = keyframes`
   100% { transform: translateX(0); }
 `;
 
-// Custom yellow flicker for progress_started
+// Custom yellow flicker for progress_started events
 const yellowFlicker = keyframes`
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
@@ -114,8 +110,8 @@ const TimelineItem = styled.div`
   margin-bottom: 2.5rem;
 `;
 
-// TimelineDot: For id "input", always use "progress_finished" (green),
-// otherwise, map based on the event's status.
+// TimelineDot: if the event id is "input" or "response", always render as green (progress_finished).
+// Otherwise, map based on the workflow event status.
 const TimelineDot = styled.div<{ status: string }>`
   width: 24px;
   height: 24px;
@@ -130,16 +126,16 @@ const TimelineDot = styled.div<{ status: string }>`
   color: #000;
   background-color: ${({ status }) => {
     if (status === "progress_started") return "#FFC107"; // yellow
-    if (status === "progress_finished") return "#28a745"; // green
+    if (status === "progress_finished" || status === "response") return "#28a745"; // green
     if (status === "inProgress") return "#FFA500"; // orange
     if (status === "failure") return "#dc3545"; // red
-    if (status === "response") return "#777"; // default for final response
+    if (status === "pending") return "#777"; // grey
     return "#777";
   }};
   animation: ${({ status }) => {
     if (status === "progress_started")
       return css`${yellowFlicker} 1s infinite`;
-    if (status === "progress_finished")
+    if (status === "progress_finished" || status === "response")
       return css`${glow} 2s infinite`;
     if (status === "inProgress")
       return css`${pulseRing} 2s infinite`;
@@ -561,6 +557,9 @@ function HomeScreen({
   );
 }
 
+/* ================================================
+   Main App Component – Aggregates Everything & Adds Firebase Logging
+   ================================================ */
 function App() {
   const [walletAddress, setWalletAddress] = useState<string>("");
   // Accumulate workflow events from WS messages
@@ -585,17 +584,25 @@ function App() {
         console.log("Parsed WS message:", parsed);
         setWorkflowEvents((prev) => {
           const newEvents = [...prev];
-          // For "progress_started", add the input event if not duplicate.
           if (parsed.type === "progress_started") {
-            if (!newEvents.some((ev) => ev.id === "input")) {
+            // For "progress_started", add or update the input event to green.
+            const inputIdx = newEvents.findIndex((ev) => ev.id === "input");
+            if (inputIdx !== -1) {
+              newEvents[inputIdx] = {
+                id: "input",
+                title: "Input Received",
+                detail: parsed.data.original || parsed.data.input || "",
+                status: "progress_finished", // always green
+              };
+            } else {
               newEvents.push({
                 id: "input",
                 title: "Input Received",
                 detail: parsed.data.original || parsed.data.input || "",
-                status: "progress_finished", // Input always green
+                status: "progress_finished",
               });
             }
-            // Delay adding the agent event by 300ms, if not duplicate.
+            // Delay adding the agent event by 300ms if not already added.
             setTimeout(() => {
               setWorkflowEvents((current) => {
                 if (!current.some((ev) => ev.id === parsed.data.current_agent.id)) {
@@ -605,7 +612,7 @@ function App() {
                       id: parsed.data.current_agent.id,
                       title: parsed.data.current_agent.name,
                       detail: parsed.data.current_agent.description,
-                      status: "inProgress",
+                      status: "progress_started",
                     },
                   ];
                 }
@@ -613,10 +620,8 @@ function App() {
               });
             }, 300);
           } else if (parsed.type === "progress_finished") {
-            // Update the agent event to progress_finished (green glow).
-            const idx = newEvents.findIndex(
-              (ev) => ev.id === parsed.data.current_agent.id
-            );
+            // Update the agent event to progress_finished (green glow)
+            const idx = newEvents.findIndex((ev) => ev.id === parsed.data.current_agent.id);
             if (idx !== -1) {
               newEvents[idx] = {
                 id: parsed.data.current_agent.id,
@@ -632,27 +637,40 @@ function App() {
                 status: "progress_finished",
               });
             }
+            // If next_address exists, add a pending block for next_agent if not duplicate.
+            if (parsed.data.next_address && parsed.data.next_agent) {
+              if (!newEvents.some((ev) => ev.id === parsed.data.next_agent.id)) {
+                newEvents.push({
+                  id: parsed.data.next_agent.id,
+                  title: parsed.data.next_agent.name,
+                  detail: "Awaiting transaction verification",
+                  status: "pending",
+                });
+              }
+            }
           } else if (parsed.type === "response") {
-            // For a "response" event, avoid duplicates.
-            if (
-              !newEvents.some(
-                (ev) =>
-                  ev.id === "response" && ev.detail === parsed.data
-              )
-            ) {
-              newEvents.push({
+            // When a response is received, update any non-input, non-response events (including pending) to green.
+            const updatedEvents = newEvents.map((ev) => {
+              if (ev.id !== "input" && ev.id !== "response" && ev.status !== "progress_finished") {
+                return { ...ev, status: "progress_finished" };
+              }
+              return ev;
+            });
+            // Add the response event if not duplicate, forcing it to green.
+            if (!updatedEvents.some((ev) => ev.id === "response" && ev.detail === parsed.data)) {
+              updatedEvents.push({
                 id: "response",
                 title: "Response",
                 detail: parsed.data,
-                status: "response",
+                status: "progress_finished",
               });
-              // Store all logs into Firebase when a "response" event is received.
+              // Store logs into Firebase (using dynamic import)
               import("firebase/firestore")
                 .then((module) => {
                   const { getFirestore, collection, addDoc } = module;
                   const db = getFirestore();
                   return addDoc(collection(db, "logs"), {
-                    logs: newEvents,
+                    logs: updatedEvents,
                     wallet: walletAddress,
                     timestamp: new Date().toISOString(),
                   });
@@ -664,6 +682,7 @@ function App() {
                   console.error("Error storing logs in Firebase:", error);
                 });
             }
+            return updatedEvents;
           }
           console.log("Updated workflowEvents:", newEvents);
           return newEvents;
