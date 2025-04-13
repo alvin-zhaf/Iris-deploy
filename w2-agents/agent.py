@@ -14,7 +14,7 @@ agent_abi = [
 				"type": "address"
 			},
 			{
-				"indexed": True,
+				"indexed": False,
 				"internalType": "string",
 				"name": "data",
 				"type": "string"

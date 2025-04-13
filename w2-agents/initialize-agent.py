@@ -61,283 +61,189 @@ def setup_web3_and_contracts():
     
     # Load ABIs
     agent_factory_abi = [
-	{
-		"anonymous": False,
-		"inputs": [
-			{
-				"indexed": True,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": False,
-				"internalType": "address",
-				"name": "agentAddress",
-				"type": "address"
-			},
-			{
-				"indexed": False,
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"indexed": False,
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			}
-		],
-		"name": "AgentCreated",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "agentDetails",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "createdAt",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "active",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			}
-		],
-		"name": "createAgent",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "agentAddress",
-				"type": "address"
-			}
-		],
-		"name": "getAgentDetails",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "createdAt",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "active",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			}
-		],
-		"name": "getAgentsByOwner",
-		"outputs": [
-			{
-				"internalType": "address[]",
-				"name": "",
-				"type": "address[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "ownerToAgents",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "agentAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "string",
-				"name": "data",
-				"type": "string"
-			}
-		],
-		"name": "requestDataViaAgent",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "agentAddress",
-				"type": "address"
-			}
-		],
-		"name": "toggleAgentStatus",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
-]
-        
-    agent_abi = [
-	{
-		"anonymous": False,
-		"inputs": [
-			{
-				"indexed": True,
-				"internalType": "address",
-				"name": "userAddress",
-				"type": "address"
-			},
-			{
-				"indexed": False,
-				"internalType": "string",
-				"name": "data",
-				"type": "string"
-			}
-		],
-		"name": "RequestData",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "userAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "callingAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "string",
-				"name": "data",
-				"type": "string"
-			}
-		],
-		"name": "callOtherContracts",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "userAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "string",
-				"name": "data",
-				"type": "string"
-			}
-		],
-		"name": "requestData",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
-]
+		{
+			"inputs": [
+				{
+					"internalType": "string",
+					"name": "name",
+					"type": "string"
+				},
+				{
+					"internalType": "string",
+					"name": "description",
+					"type": "string"
+				}
+			],
+			"name": "createAgent",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "agentAddress",
+					"type": "address"
+				},
+				{
+					"internalType": "string",
+					"name": "data",
+					"type": "string"
+				}
+			],
+			"name": "requestDataViaAgent",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "agentAddress",
+					"type": "address"
+				}
+			],
+			"name": "toggleAgentStatus",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"name": "agentDetails",
+			"outputs": [
+				{
+					"internalType": "string",
+					"name": "name",
+					"type": "string"
+				},
+				{
+					"internalType": "string",
+					"name": "description",
+					"type": "string"
+				},
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "createdAt",
+					"type": "uint256"
+				},
+				{
+					"internalType": "bool",
+					"name": "active",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "agentAddress",
+					"type": "address"
+				}
+			],
+			"name": "getAgentDetails",
+			"outputs": [
+				{
+					"internalType": "string",
+					"name": "name",
+					"type": "string"
+				},
+				{
+					"internalType": "string",
+					"name": "description",
+					"type": "string"
+				},
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "createdAt",
+					"type": "uint256"
+				},
+				{
+					"internalType": "bool",
+					"name": "active",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				}
+			],
+			"name": "getAgentsByOwner",
+			"outputs": [
+				{
+					"internalType": "address[]",
+					"name": "",
+					"type": "address[]"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"name": "ownerToAgents",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		}
+	]
     
     # Get contract address
     factory_address = os.getenv('AGENT_FACTORY_ADDR')
@@ -437,13 +343,7 @@ def initialize_agents():
             )
             
             if tx_receipt:
-                # Extract the AgentCreated event
-                logs = agent_factory.events.AgentCreated().process_receipt(tx_receipt)
-                if logs:
-                    agent_address = logs[0]['args']['agentAddress']
-                    logger.info(f"Agent '{name}' created successfully at address: {agent_address}")
-                else:
-                    logger.warning(f"Agent '{name}' created but couldn't extract address from logs")
+                logger.warning(f"Agent '{name}' created but couldn't extract address from logs")
             else:
                 logger.error(f"Failed to create agent: {name}")
             

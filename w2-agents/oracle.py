@@ -3,7 +3,6 @@ load_dotenv()
 
 import random
 import os
-import time
 from rich.console import Console
 from rich.traceback import install
 from rich.status import Status
@@ -25,7 +24,7 @@ agent_abi = [
 				"type": "address"
 			},
 			{
-				"indexed": True,
+				"indexed": False,
 				"internalType": "string",
 				"name": "data",
 				"type": "string"
@@ -98,75 +97,60 @@ except Exception as e:
     raise
 
 def trigger_external_action(*args):
-    logger.log("[bold green]Triggering external action...[/]")
-    logger.log("[bold green]Arguments received:[/]")
+    logger.info("[bold green]Triggering external action...[/]")
+    logger.info("[bold green]Arguments received:[/]")
     for arg in args:
-        logger.log(arg)
-    logger.log("[bold green]External action triggered successfully![/]")
+        logger.info(arg)
+    logger.info("[bold green]External action triggered successfully![/]")
     
     # Should pass to next ai is a 80% chance:
     if random.random() < 0:
-        logger.log("[bold green]Passing to next AI...[/]")
+        logger.info("[bold green]Passing to next AI...[/]")
         # Call the contract function
         agent.call_contract_function(w3, args[0], args[1], logger, "")
     else:
-        logger.log("[bold red]Failed to pass to next AI.[/]")
+        logger.info("[bold red]Failed to pass to next AI.[/]")
     
+    
+def get_initial_block():
+    return w3.eth.block_number
 
-def listen_for_contract_requests():
-    try:
-        with Status("[bold green]Listening for contract requests...[/]", console=console):
-            # Instead of creating a filter for a specific contract,
-            # we'll process each new block and look for events
-            last_block_processed = w3.eth.block_number
+def listen_for_contract_requests(last_block_processed):
+    try:        
+        # Check for new blocks
+        current_block = w3.eth.block_number
+        if current_block > last_block_processed:
+            logger.info(f"Checking blocks {last_block_processed+1} to {current_block}")
             
-            while True:
-                # Wait 1 second
-                time.sleep(1)
+            # Loop through each new block
+            for block_num in range(last_block_processed + 1, current_block + 1):
+                # Get all logs with the IRISRequestAgentData event signature
+                event_signature = "0x" + w3.keccak(text="IRISRequestAgentData(address,string)").hex()
+                logs = w3.eth.get_logs({
+                    'fromBlock': block_num,
+                    'toBlock': block_num,
+                    'topics': [event_signature]
+                })
                 
-                # Check for new blocks
-                current_block = w3.eth.block_number
-                if current_block > last_block_processed:
-                    logger.info(f"Checking blocks {last_block_processed+1} to {current_block}")
+                # Process each log
+                for log in logs:
+                    # Create a contract instance with the log's address
+                    contract_address = log['address']
+                    temp_contract = w3.eth.contract(address=contract_address, abi=agent_abi)
                     
-                    # Loop through each new block
-                    for block_num in range(last_block_processed + 1, current_block + 1):
-                        # Get all logs with the IRISRequestAgentData event signature
-                        event_signature = w3.keccak(text="IRISRequestAgentData(address,string)").hex()
-                        logs = w3.eth.get_logs({
-                            'fromBlock': block_num,
-                            'toBlock': block_num,
-                            'topics': [event_signature]
-                        })
-                        
-                        # Process each log
-                        for log in logs:
-                            # Create a contract instance with the log's address
-                            contract_address = log['address']
-                            temp_contract = w3.eth.contract(address=contract_address, abi=agent_abi)
-                            
-                            # Process the event data
-                            try:
-                                event = temp_contract.events.IRISRequestAgentData().process_log(log)
-                                logger.info(f"Event received from {contract_address}: {event}")
-                                if event['event'] == 'IRISRequestAgentData':
-                                    argsdict = dict(event['args'])
-                                    trigger_external_action(*[argsdict[k] for k in sorted(argsdict)])
-                            except Exception as e:
-                                logger.error(f"Failed to process event: {e}")
-                    
-                    # Update the last processed block
-                    last_block_processed = current_block
+                    # Process the event data
+                    try:
+                        event = temp_contract.events.IRISRequestAgentData().process_log(log)
+                        logger.info(f"Event received from {contract_address}: {event}")
+                        if event['event'] == 'IRISRequestAgentData':
+                            argsdict = dict(event['args'])
+                            trigger_external_action(argsdict['userAddress'], argsdict['data'])
+                    except Exception as e:
+                        logger.error(f"Failed to process event: {e}")
+                        raise e
+            
+            # Update the last processed block
+            last_block_processed = current_block
     except Exception as e:
         console.print(f"[bold red]Error in listen_for_contract_requests: {e}[/]")
         logger.exception("Exception occurred in listen_for_contract_requests.")
-
-
-if __name__ == "__main__":
-    try:
-        listen_for_contract_requests()
-    except KeyboardInterrupt:
-        console.print("[bold red]Process interrupted by user.[/]")
-    except Exception as e:
-        console.print(f"[bold red]Unexpected error: {e}[/]")
-        logger.exception("Unexpected error occurred in main.")

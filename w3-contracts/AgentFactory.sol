@@ -8,9 +8,7 @@ import "./Agent.sol";
  * @dev Factory contract for creating and managing Agent instances
  */
 contract AgentFactory {
-    // Event emitted when a new Agent is created
-    event AgentCreated(address indexed owner, address agentAddress, string name, string description);
-    
+
     // Mapping from owner address to their agents
     mapping(address => address[]) public ownerToAgents;
     
@@ -48,9 +46,6 @@ contract AgentFactory {
         
         // Add the agent to the owner's list
         ownerToAgents[msg.sender].push(agentAddress);
-        
-        // Emit the creation event
-        emit AgentCreated(msg.sender, agentAddress, name, description);
         
         return agentAddress;
     }
@@ -106,12 +101,11 @@ contract AgentFactory {
      * @dev Request data through a specific agent
      * @param agentAddress The address of the agent to use
      * @param data The data to request
-     * @param contractAddresses The addresses of contracts to call
      */
-    function requestDataViaAgent(address agentAddress, string memory data, address[] memory contractAddresses) public {
+    function requestDataViaAgent(address agentAddress, string memory data) public {
         require(agentDetails[agentAddress].active, "Agent is not active");
         
         Agent agent = Agent(agentAddress);
-        agent.requestData(msg.sender, data, contractAddresses);
+        agent.requestData(msg.sender, data);
     }
 }
