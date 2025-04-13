@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { BarChart, List, ArrowLeft, Home, Plus, X } from "lucide-react";
 import FocusGraph3D from "../components/FocusGraph3D";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../firebaseConfig";
 
 // -------------------- ANIMATION & BACKGROUND EFFECTS -------------------- //
 
@@ -549,7 +551,7 @@ const Agents: React.FC = () => {
 
   const handleBack = () => {
     window.history.back();
-  };
+  };  
 
   const goToDashboard = () => {
     window.location.href = "/dashboard";
@@ -570,24 +572,24 @@ const Agents: React.FC = () => {
     setNewAgentDescription("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically add the new agent to your state or send to an API
-    console.log("Creating new agent:", { name: newAgentName, description: newAgentDescription });
-    
-    // Close the dialog
-    closeDialog();
-    
-    // Show success notification
-    setShowSuccess(true);
-    
-    // Auto-hide success notification after 3 seconds
-    setTimeout(() => {
-      setShowSuccess(false);
-    }, 3000);
-    
-    // In a real implementation, you'd add the new agent to your list
-    // and potentially navigate to a creation/configuration page
+    const newAgent = {
+      name: newAgentName,
+      description: newAgentDescription,
+      owner: "CurrentUser", // Update as needed
+      timeCreated: new Date().toISOString(),
+    };
+
+    try {
+      await addDoc(collection(db, "agents"), newAgent);
+      closeDialog();
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      // Optionally, set an error state to display a message to the user
+    }
   };
 
   return (
