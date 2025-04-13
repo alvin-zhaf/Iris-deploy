@@ -71,8 +71,8 @@ const SciFiCardSVG = () => {
           </feMerge>
         </filter>
         <radialGradient id="ringGradient" r="1" cx="50%" cy="50%">
-          <stop offset="0%" stopColor="#d2c2f0" stopOpacity="0" />
-          <stop offset="100%" stopColor="#d2c2f0" stopOpacity="0.3" />
+          <stop offset="0%" stopColor="#88d2c2f0" stopOpacity="0" />
+          <stop offset="100%" stopColor="#88d2c2f0" stopOpacity="0.3" />
         </radialGradient>
       </defs>
 
@@ -85,7 +85,7 @@ const SciFiCardSVG = () => {
           cy="300"
           r="285"
           fill="none"
-          stroke="#d2c2f0"
+          stroke="#88d2c2f0"
           strokeWidth="2"
           strokeDasharray="10 5"
           filter="url(#glow)"
@@ -95,7 +95,7 @@ const SciFiCardSVG = () => {
           cy="300"
           r="255"
           fill="none"
-          stroke="#d2c2f0"
+          stroke="#88d2c2f0"
           strokeWidth="2"
           strokeDasharray="2 4"
         />
@@ -103,7 +103,7 @@ const SciFiCardSVG = () => {
         <g transform={topArcRotation}>
           <path
             d="M 90 300 A 210 210 0 0 1 300 90"
-            stroke="#d2c2f0"
+            stroke="#88d2c2f0"
             strokeWidth="2"
             fill="none"
             filter="url(#glow)"
@@ -113,7 +113,7 @@ const SciFiCardSVG = () => {
         <g transform={bottomArcRotation}>
           <path
             d="M 510 300 A 210 210 0 0 1 300 510"
-            stroke="#d2c2f0"
+            stroke="#88d2c2f0"
             strokeWidth="2"
             fill="none"
             filter="url(#glow)"
@@ -121,7 +121,7 @@ const SciFiCardSVG = () => {
         </g>
 
         <g
-          stroke="#d2c2f0"
+          stroke="#88d2c2f0"
           strokeWidth="2"
           transform={`rotate(${
             (rotationOffset.y + rotationOffset.x) * 0.2

@@ -147,11 +147,9 @@ async def trigger_external_action(me, *args):
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     
     system_prompt = (
-        f"DO NOT RUN: {','.join(hopnames)} (important)."
-        "You are a routing system for a multi-agent blockchain service network. "
-        "You need to determine which service should process the input next based on the query, "
-        "You may choose one of the provided tools, OR just respond if you have the answer to the query."
-        "Select the service that would be most helpful for the next step in processing this request."
+        f"NOT ALLOWED TOOLS: {','.join(hopnames)}."
+        "Respond to user by: (1) Defer to one of the ALLOWED tools, (2) directly respond to user if it fits within your boundaries."
+        "When deferring select the most helpful service."
         f"Your skills include: {my_agent['description']}."
     )
     
