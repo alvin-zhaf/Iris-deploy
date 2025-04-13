@@ -554,10 +554,6 @@ function HomeScreen({
               <Orbit size={18} />
               Universe
             </Styled.ConnectButton>
-            <Styled.ConnectButton onClick={() => navigate("/marketplace")}>
-              <Globe size={18} />
-              Marketplace
-            </Styled.ConnectButton>
           </Styled.ButtonRow>
         </Styled.GlassmorphicContainer>
       </Styled.FloatingIsland>
@@ -565,9 +561,6 @@ function HomeScreen({
   );
 }
 
-/* ================================================
-   Main App Component – Aggregates Everything
-   ================================================ */
 function App() {
   const [walletAddress, setWalletAddress] = useState<string>("");
   // Accumulate workflow events from WS messages
