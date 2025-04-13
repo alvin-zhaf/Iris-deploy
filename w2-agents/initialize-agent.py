@@ -10,10 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
-import json
-import firebase_admin
-from firebase_admin import firestore
-from firebase_admin import credentials
+import db
 import time
 import logging
 from web3 import Web3
@@ -28,10 +25,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("agent_initializer")
 console = Console()
-
-cred = credentials.Certificate("cred.json")
-app = firebase_admin.initialize_app(cred)
-db = firestore.client()
 
 
 # Define your initial agents here
@@ -353,7 +346,7 @@ def initialize_agents():
             # Check if agent already exists
             exists, address = agent_exists(agent_factory, wallet_address, name)
             if exists:
-                db.collection("agents").document(agent_config["id"]).set({
+                db.add_agent(agent_config["id"], {
                     "name": name,
                     "description": description,
                     "address": address
@@ -373,7 +366,7 @@ def initialize_agents():
                 print(tx_receipt)
                 exists, address = agent_exists(agent_factory, wallet_address, name)
                 if exists:
-                    db.collection("agents").document(agent_config["id"]).set({
+                    db.add_agent(agent_config["id"], {
                         "name": name,
                         "description": description,
                         "address": address
