@@ -600,11 +600,9 @@ function App() {
       const response = event.data;
       console.log("WebSocket message received:", response);
       setWsData(response);
-      ws.close();
     };
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
-      ws.close();
     };
   };
 
