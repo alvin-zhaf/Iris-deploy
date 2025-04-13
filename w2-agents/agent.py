@@ -18,6 +18,24 @@ agent_abi = [
 				"internalType": "string",
 				"name": "data",
 				"type": "string"
+			},
+			{
+				"indexed": False,
+				"internalType": "uint256",
+				"name": "max_hops",
+				"type": "uint256"
+			},
+			{
+				"indexed": False,
+				"internalType": "string",
+				"name": "originalData",
+				"type": "string"
+			},
+			{
+				"indexed": False,
+				"internalType": "address[]",
+				"name": "hops",
+				"type": "address[]"
 			}
 		],
 		"name": "IRISRequestAgentData",
@@ -31,32 +49,24 @@ agent_abi = [
 				"type": "address"
 			},
 			{
-				"internalType": "address",
-				"name": "callingAddress",
-				"type": "address"
-			},
-			{
 				"internalType": "string",
 				"name": "data",
 				"type": "string"
-			}
-		],
-		"name": "callOtherContracts",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+			},
 			{
-				"internalType": "address",
-				"name": "userAddress",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "max_hops",
+				"type": "uint256"
 			},
 			{
 				"internalType": "string",
-				"name": "data",
+				"name": "originalData",
 				"type": "string"
+			},
+			{
+				"internalType": "address[]",
+				"name": "hops",
+				"type": "address[]"
 			}
 		],
 		"name": "requestData",
@@ -66,10 +76,10 @@ agent_abi = [
 	}
 ]
 
-def call_contract_function(w3, wallet, input, logger, to):
+def call_contract_function(w3, wallet, input, original, hops, logger, to):
     try:
         agent = w3.eth.contract(address=to, abi=agent_abi)
-        agent_function = agent.functions.requestData(w3.to_checksum_address(wallet), input)
+        agent_function = agent.functions.requestData(w3.to_checksum_address(wallet), input, 20, original, hops)
         
         nonce = w3.eth.get_transaction_count(os.getenv('WALLET_ADDR'))
         tx = agent_function.build_transaction({

@@ -79,67 +79,6 @@ def setup_web3_and_contracts():
 		{
 			"inputs": [
 				{
-					"internalType": "string",
-					"name": "name",
-					"type": "string"
-				},
-				{
-					"internalType": "string",
-					"name": "description",
-					"type": "string"
-				}
-			],
-			"name": "createAgent",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "agentAddress",
-					"type": "address"
-				},
-				{
-					"internalType": "string",
-					"name": "data",
-					"type": "string"
-				}
-			],
-			"name": "requestDataViaAgent",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "agentAddress",
-					"type": "address"
-				}
-			],
-			"name": "toggleAgentStatus",
-			"outputs": [
-				{
-					"internalType": "bool",
-					"name": "",
-					"type": "bool"
-				}
-			],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
 					"internalType": "address",
 					"name": "",
 					"type": "address"
@@ -174,6 +113,30 @@ def setup_web3_and_contracts():
 				}
 			],
 			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "string",
+					"name": "name",
+					"type": "string"
+				},
+				{
+					"internalType": "string",
+					"name": "description",
+					"type": "string"
+				}
+			],
+			"name": "createAgent",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "nonpayable",
 			"type": "function"
 		},
 		{
@@ -256,6 +219,25 @@ def setup_web3_and_contracts():
 				}
 			],
 			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "agentAddress",
+					"type": "address"
+				}
+			],
+			"name": "toggleAgentStatus",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
 			"type": "function"
 		}
 	]

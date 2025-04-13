@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-import random
 import os
 import db
 from rich.console import Console
@@ -11,6 +10,7 @@ import logging
 from web3 import Web3
 
 from openai import OpenAI
+import websocket
 
 import agent
 
@@ -30,6 +30,24 @@ agent_abi = [
 				"internalType": "string",
 				"name": "data",
 				"type": "string"
+			},
+			{
+				"indexed": False,
+				"internalType": "uint256",
+				"name": "max_hops",
+				"type": "uint256"
+			},
+			{
+				"indexed": False,
+				"internalType": "string",
+				"name": "originalData",
+				"type": "string"
+			},
+			{
+				"indexed": False,
+				"internalType": "address[]",
+				"name": "hops",
+				"type": "address[]"
 			}
 		],
 		"name": "IRISRequestAgentData",
@@ -43,32 +61,24 @@ agent_abi = [
 				"type": "address"
 			},
 			{
-				"internalType": "address",
-				"name": "callingAddress",
-				"type": "address"
-			},
-			{
 				"internalType": "string",
 				"name": "data",
 				"type": "string"
-			}
-		],
-		"name": "callOtherContracts",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+			},
 			{
-				"internalType": "address",
-				"name": "userAddress",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "max_hops",
+				"type": "uint256"
 			},
 			{
 				"internalType": "string",
-				"name": "data",
+				"name": "originalData",
 				"type": "string"
+			},
+			{
+				"internalType": "address[]",
+				"name": "hops",
+				"type": "address[]"
 			}
 		],
 		"name": "requestData",
@@ -98,9 +108,11 @@ except Exception as e:
     console.print(f"[bold red]Failed to initialize oracle contract: {e}[/]")
     raise
 
-def trigger_external_action(me, *args):
+async def trigger_external_action(me, *args):
     wallet = args[0]
     data = args[1]
+    original = args[2]
+    hops = args[3]
     agents = [a for a in db.list_agent() if a["address"] != me]
     my_agent = [a for a in db.list_agent() if a["address"] == me][0]
     tools = [{
@@ -144,22 +156,30 @@ def trigger_external_action(me, *args):
     
     # Debug response
     logger.info(f"Response tool calls: {response.choices[0].message.tool_calls}")
+    logger.info(f"Response tool call function input: {eval(response.choices[0].message.tool_calls[0].function.arguments)["input"]}")
     logger.info(f"Response message: {response.choices[0].message.content}")
     
-    next_address = ""
     if response.choices[0].message.tool_calls:
         next_name = response.choices[0].message.tool_calls[0].function.name
         console.print(f"[bold green]Next AI: {next_name}[/]")
         next_address = [agent["address"] for agent in agents if agent["id"] == next_name][0]
+        agent.call_contract_function(w3, wallet, eval(response.choices[0].message.tool_calls[0].function.arguments)["input"], original, hops + [me], logger, next_address)
+    else:
+        text_response = response.choices[0].message.content
+        console.print(f"[bold green]Response: {text_response}[/]")
+        websocket.result = text_response
+        console.print(f"[bold yellow]Discarding wallet: {wallet}[/]")
+        await websocket.safe_discard(wallet.lower())
     
+    
+last_block_processed = 0
+    
+def set_initial_block():
+    global last_block_processed
+    last_block_processed = w3.eth.block_number
 
-    agent.call_contract_function(w3, wallet, data, logger, next_address)
-    
-    
-def get_initial_block():
-    return w3.eth.block_number
-
-def listen_for_contract_requests(last_block_processed):
+async def listen_for_contract_requests():
+    global last_block_processed
     try:        
         # Check for new blocks
         current_block = w3.eth.block_number
@@ -169,7 +189,7 @@ def listen_for_contract_requests(last_block_processed):
             # Loop through each new block
             for block_num in range(last_block_processed + 1, current_block + 1):
                 # Get all logs with the IRISRequestAgentData event signature
-                event_signature = "0x" + w3.keccak(text="IRISRequestAgentData(address,string)").hex()
+                event_signature = "0x" + w3.keccak(text="IRISRequestAgentData(address,string,uint256,string,address[])").hex()
                 logs = w3.eth.get_logs({
                     'fromBlock': block_num,
                     'toBlock': block_num,
@@ -188,7 +208,7 @@ def listen_for_contract_requests(last_block_processed):
                         logger.info(f"Event received from {contract_address}: {event}")
                         if event['event'] == 'IRISRequestAgentData':
                             argsdict = dict(event['args'])
-                            trigger_external_action(contract_address, argsdict['userAddress'], argsdict['data'])
+                            await trigger_external_action(contract_address, argsdict['userAddress'], argsdict['data'], argsdict['originalData'], argsdict['hops'])
                     except Exception as e:
                         logger.error(f"Failed to process event: {e}")
                         raise e

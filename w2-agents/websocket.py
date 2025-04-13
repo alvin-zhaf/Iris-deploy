@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import agent
+import copy
 from web3 import Web3
 
 # dotenv
@@ -12,16 +13,35 @@ load_dotenv()
 
 import oracle
 
+import asyncio
+
+# Atomic String:
+result = ""
+
+active_sockets = set()
+set_lock = asyncio.Lock()
+
+async def safe_add(item):
+    async with set_lock:
+        active_sockets.add(item)
+
+async def safe_contains(item):
+    async with set_lock:
+        return item in active_sockets
+
+async def safe_discard(item):
+    async with set_lock:
+        active_sockets.discard(item)
 
 app = FastAPI()
 
 logger = logging.getLogger("websocket")
 
 async def background_loop():
-    initial_block = oracle.get_initial_block()
+    oracle.set_initial_block()
     while True:
         logger.info(f"Polling...")
-        oracle.listen_for_contract_requests(initial_block)
+        await oracle.listen_for_contract_requests()
         await asyncio.sleep(5)  # Simulate async work
         
 @app.on_event("startup")
@@ -40,7 +60,16 @@ async def websocket_endpoint(websocket: WebSocket):
         raise e
     data_wallet = data.get("wallet")
     data_input = data.get("input")
-    agent.call_contract_function(w3, data_wallet, data_input, logger, os.getenv("GATEWAY_ADDR"))
+    await safe_add(data_wallet)
+    agent.call_contract_function(w3, data_wallet, data_input, data_input, [], logger, os.getenv("GATEWAY_ADDR"))
     
+    while await safe_contains(data_wallet):
+        await asyncio.sleep(1)
+        
+    my_result = copy.deepcopy(result)
+    await websocket.send_json({
+        "type": "response",
+        "data": my_result
+    })
     await websocket.close()
     print("WebSocket closed.")
