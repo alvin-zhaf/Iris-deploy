@@ -22,7 +22,7 @@ async def background_loop():
     while True:
         logger.info(f"Polling...")
         oracle.listen_for_contract_requests(initial_block)
-        await asyncio.sleep(3)  # Simulate async work
+        await asyncio.sleep(5)  # Simulate async work
         
 @app.on_event("startup")
 async def start_background_loop():

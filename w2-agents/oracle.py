@@ -3,12 +3,14 @@ load_dotenv()
 
 import random
 import os
+import db
 from rich.console import Console
 from rich.traceback import install
-from rich.status import Status
 from rich.logging import RichHandler
 import logging
 from web3 import Web3
+
+from openai import OpenAI
 
 import agent
 
@@ -96,20 +98,62 @@ except Exception as e:
     console.print(f"[bold red]Failed to initialize oracle contract: {e}[/]")
     raise
 
-def trigger_external_action(*args):
-    logger.info("[bold green]Triggering external action...[/]")
-    logger.info("[bold green]Arguments received:[/]")
-    for arg in args:
-        logger.info(arg)
-    logger.info("[bold green]External action triggered successfully![/]")
+def trigger_external_action(me, *args):
+    wallet = args[0]
+    data = args[1]
+    agents = [a for a in db.list_agent() if a["address"] != me]
+    my_agent = [a for a in db.list_agent() if a["address"] == me][0]
+    tools = [{
+		"type": "function",
+            "function": {
+                "name": agent["id"],
+                "description": agent["description"],
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "input": {
+                            "type": "string",
+                            "description": f"A text description detailing anything that could relate to {agent["id"]}."
+                        }
+                    },
+                    "required": ["input"]
+                }
+            }
+	} for agent in agents]
     
-    # Should pass to next ai is a 80% chance:
-    if random.random() < 0:
-        logger.info("[bold green]Passing to next AI...[/]")
-        # Call the contract function
-        agent.call_contract_function(w3, args[0], args[1], logger, "")
-    else:
-        logger.info("[bold red]Failed to pass to next AI.[/]")
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    
+    system_prompt = (
+        "You are a routing system for a multi-agent blockchain service network. "
+        "You need to determine which service should process the input next based on the query, "
+        "the current service, and its response. You may choose one of the provided tools, OR just respond if you have the answer to the query."
+        "Select the service that would be most helpful for the next step in processing this request."
+        "Your skills include: "
+        f"{my_agent['description']}. "
+    )
+    
+    response = client.chat.completions.create(
+        model="gpt-4o",
+		messages=[
+			{"role": "system", "content": system_prompt},
+			{"role": "user", "content": f"Query: {data}"},
+		],
+		tools=tools,
+		tool_choice="auto"
+	)
+    
+    # Debug response
+    logger.info(f"Response tool calls: {response.choices[0].message.tool_calls}")
+    logger.info(f"Response message: {response.choices[0].message.content}")
+    
+    next_address = ""
+    if response.choices[0].message.tool_calls:
+        next_name = response.choices[0].message.tool_calls[0].function.name
+        console.print(f"[bold green]Next AI: {next_name}[/]")
+        next_address = [agent["address"] for agent in agents if agent["id"] == next_name][0]
+    
+
+    agent.call_contract_function(w3, wallet, data, logger, next_address)
     
     
 def get_initial_block():
@@ -144,7 +188,7 @@ def listen_for_contract_requests(last_block_processed):
                         logger.info(f"Event received from {contract_address}: {event}")
                         if event['event'] == 'IRISRequestAgentData':
                             argsdict = dict(event['args'])
-                            trigger_external_action(argsdict['userAddress'], argsdict['data'])
+                            trigger_external_action(contract_address, argsdict['userAddress'], argsdict['data'])
                     except Exception as e:
                         logger.error(f"Failed to process event: {e}")
                         raise e
