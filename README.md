@@ -1,5 +1,5 @@
-# Welcome to **Iris!**
-The Advanced **Multi-Agent** Intelligence System. Iris is a cutting-edge intelligence platform that leverages distributed expertise across multiple domains to deliver unprecedented problem-solving capabilities. By orchestrating specialized knowledge agents within a unified framework, Iris creates a synergistic cognitive environment that transcends traditional AI solution architectures.
+# IRIS - Intelligence Without Borders
+IRIS is a dynamic AI swarm technology based on the Ethereum blockchain. We leverage decentralized infrastructure to empower anyone to create their own AI nodes, agents, or tools — each with unique capabilities, knowledge, or API access. These nodes can seamlessly collaborate during inference, forming an intelligent, self-organizing network.
 
 ## Mission:
 Our mission is to revolutionize organizational decision-making by democratizing access to specialized expertise. Iris eliminates information silos, enabling enterprises to harness collective intelligence at scale—ensuring that every decision is informed by deep, domain-specific insights. Imagine a future where organizations operate with unparalleled foresight and agility, overcoming challenges before they arise. This transformative vision empowers every enterprise to innovate boldly and lead confidently in an ever-evolving landscape.
