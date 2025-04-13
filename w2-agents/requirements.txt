@@ -3,3 +3,4 @@ rich
 dotenv
 fastapi
 uvicorn
+firebase-admin

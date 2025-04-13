@@ -35,3 +35,5 @@ __pycache__/
 *.egg
 *.whl
 *.pipe
+
+w2-agents/cred.json
