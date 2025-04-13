@@ -116,14 +116,13 @@ async def trigger_external_action(me, *args):
     agents = [a for a in db.list_agent() if a["address"] != me]
     my_agent = [a for a in db.list_agent() if a["address"] == me][0]
     hopnames = [agent["id"] for agent in agents if agent["address"] in hops] + [my_agent["id"]]
-    await websocket.current_websocket.send_json({
+    await websocket.send_json({
             "type": "progress_started",
             "data": {
                 "wallet": wallet,
                 "input": data,
                 "original": original,
                 "hops": hops + [me],
-                "next": next_name,
                 "current_agent": my_agent
             }
         })
@@ -177,7 +176,7 @@ async def trigger_external_action(me, *args):
         next_name = response.choices[0].message.tool_calls[0].function.name
         console.print(f"[bold green]Next AI: {next_name}[/]")
         next_address = [agent["address"] for agent in agents if agent["id"] == next_name][0]
-        await websocket.current_websocket.send_json({
+        await websocket.send_json({
             "type": "progress_finished",
             "data": {
                 "wallet": wallet,

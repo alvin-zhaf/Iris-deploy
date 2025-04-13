@@ -39,6 +39,11 @@ app = FastAPI()
 
 logger = logging.getLogger("websocket")
 
+async def send_json(json):
+    global current_websocket
+    if current_websocket:
+        await current_websocket.send_json(json)
+
 async def background_loop():
     oracle.set_initial_block()
     while True:
