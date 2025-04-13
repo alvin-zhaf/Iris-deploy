@@ -1,5 +1,8 @@
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
+
 agent_abi = [
 	{
 		"anonymous": False,
@@ -66,7 +69,7 @@ agent_abi = [
 def call_contract_function(w3, wallet, input, logger, to):
     try:
         agent = w3.eth.contract(address=to, abi=agent_abi)
-        agent_function = agent.functions.requestData(wallet, input)
+        agent_function = agent.functions.requestData(w3.to_checksum_address(wallet), input)
         
         nonce = w3.eth.get_transaction_count(os.getenv('WALLET_ADDR'))
         tx = agent_function.build_transaction({

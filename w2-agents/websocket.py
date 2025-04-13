@@ -26,7 +26,7 @@ async def websocket_endpoint(websocket: WebSocket):
         raise e
     data_wallet = data.get("wallet")
     data_input = data.get("input")
-    agent.call_contract_function(w3, data_wallet, data_input, logger, "")
+    agent.call_contract_function(w3, data_wallet, data_input, logger, os.getenv("GATEWAY_ADDR"))
     
     await websocket.close()
     print("WebSocket closed.")
