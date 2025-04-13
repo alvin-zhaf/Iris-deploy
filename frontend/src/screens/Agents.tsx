@@ -4,6 +4,7 @@ import { BarChart, List, ArrowLeft, Home, Plus, X } from "lucide-react";
 import FocusGraph3D from "../components/FocusGraph3D";
 import { collection, addDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig"; // Adjust the path as needed
+import { data } from "react-router-dom";
 
 // -------------------- ANIMATION & BACKGROUND EFFECTS -------------------- //
 
@@ -652,11 +653,11 @@ const Agents: React.FC = () => {
         ...doc.data(),
         // Add default performance metrics if not available
         performance: doc.data().performance || {
-          speed: "70%",
-          accuracy: "70%",
-          reliability: "70%",
-          efficiency: "70%",
-          learning: "70%"
+          speed: doc.data().speed,
+          accuracy: doc.data().accuracy,
+          reliability: doc.data().reliability,
+          efficiency: doc.data().efficiency,
+          learning: doc.data().learning
         },
         // Add default sparkline data if not available
         sparklineData: doc.data().sparklineData || [10, 12, 15, 13, 17, 14, 15, 16, 18, 17],
@@ -769,11 +770,11 @@ const Agents: React.FC = () => {
                 <RadarChart 
                   metrics={['Speed', 'Accuracy', 'Reliability', 'Efficiency', 'Learning']} 
                   values={[
-                    parseInt(agent.performance.speed.replace('%', '')) / 100,
-                    parseInt(agent.performance.accuracy.replace('%', '')) / 100,
-                    parseInt(agent.performance.reliability.replace('%', '')) / 100,
-                    parseInt(agent.performance.efficiency.replace('%', '')) / 100,
-                    parseInt(agent.performance.learning.replace('%', '')) / 100
+                    agent.performance.speed / 10,
+                    agent.performance.accuracy / 10,
+                    agent.performance.reliability / 10,
+                    agent.performance.efficiency / 10,
+                    agent.performance.learning / 10
                   ]}
                 />
               </RadarChartContainer>
