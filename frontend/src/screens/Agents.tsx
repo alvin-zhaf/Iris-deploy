@@ -114,7 +114,7 @@ const AgentListContainer = styled.div`
 const AgentCard = styled.div<{ isExpanded: boolean }>`
   background-color: #27272a;
   border-radius: 10px;
-  border: 2px solid ${props => props.isExpanded ? "#d8b4fe" : "transparent"};
+  border: 2px solid ${(props) => (props.isExpanded ? "#d8b4fe" : "transparent")};
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem 1.5rem 0 1.5rem;
   cursor: pointer;
@@ -124,7 +124,7 @@ const AgentCard = styled.div<{ isExpanded: boolean }>`
   aspect-ratio: 1/1;
 
   &:hover {
-    transform: ${props => props.isExpanded ? "scale(1.05)" : "scale(1.03)"};
+    transform: ${(props) => (props.isExpanded ? "scale(1.05)" : "scale(1.03)")};
     border: 2px solid #d8b4fe;
   }
 
@@ -175,10 +175,10 @@ const AgentTitle = styled.h3<{ isExpanded: boolean }>`
   margin-bottom: 1rem;
   color: #d8b4fe;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  opacity: ${props => props.isExpanded ? 0 : 1};
-  transform: translateY(${props => props.isExpanded ? -20 : 0}px);
-  height: ${props => props.isExpanded ? 0 : 'auto'};
-  margin: ${props => props.isExpanded ? 0 : '0 0 1rem 0'};
+  opacity: ${(props) => (props.isExpanded ? 0 : 1)};
+  transform: translateY(${(props) => (props.isExpanded ? -20 : 0)}px);
+  height: ${(props) => (props.isExpanded ? 0 : "auto")};
+  margin: ${(props) => (props.isExpanded ? 0 : "0 0 1rem 0")};
   overflow: hidden;
 `;
 
@@ -187,10 +187,10 @@ const AgentDescription = styled.p<{ isExpanded: boolean }>`
   margin-bottom: 1rem;
   color: #fff;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  opacity: ${props => props.isExpanded ? 0 : 1};
-  transform: translateY(${props => props.isExpanded ? -15 : 0}px);
-  height: ${props => props.isExpanded ? 0 : 'auto'};
-  margin: ${props => props.isExpanded ? 0 : '0 0 1rem 0'};
+  opacity: ${(props) => (props.isExpanded ? 0 : 1)};
+  transform: translateY(${(props) => (props.isExpanded ? -15 : 0)}px);
+  height: ${(props) => (props.isExpanded ? 0 : "auto")};
+  margin: ${(props) => (props.isExpanded ? 0 : "0 0 1rem 0")};
   overflow: hidden;
 `;
 
@@ -205,7 +205,7 @@ const RadarChartContainer = styled.div<{ isExpanded: boolean }>`
   height: 180px;
   width: 180px; /* Ensure the radar chart has a fixed width */
   margin: 10px auto auto auto; /* Center the radar chart horizontally */
-  opacity: ${props => props.isExpanded ? 1 : 0}; /* Fade in/out */
+  opacity: ${(props) => (props.isExpanded ? 1 : 0)}; /* Fade in/out */
   transition: opacity 0.6s ease; /* Smooth fade transition */
   display: flex;
   align-items: center; /* Center vertically */
@@ -219,7 +219,7 @@ const SparklineContainer = styled.div<{ isExpanded: boolean }>`
   right: 0;
   height: 50%;
   width: 100%;
-  opacity: ${props => props.isExpanded ? 0 : 1};
+  opacity: ${(props) => (props.isExpanded ? 0 : 1)};
   transition: opacity 0.3s ease;
 `;
 
@@ -379,7 +379,11 @@ const GraphOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(ellipse at bottom, rgb(51, 42, 59) 0%, #090a0f 100%);
+  background: radial-gradient(
+    ellipse at bottom,
+    rgb(51, 42, 59) 0%,
+    #090a0f 100%
+  );
   animation: ${fadeInUp} 0.6s ease;
   z-index: 10;
   display: flex;
@@ -436,12 +440,18 @@ const SwitchCircle = styled.div<{ active: boolean }>`
 
 // -------------------- RADAR CHART COMPONENT -------------------- //
 
-const RadarChart = ({ metrics, values }: { metrics: string[], values: number[] }) => {
+const RadarChart = ({
+  metrics,
+  values,
+}: {
+  metrics: string[];
+  values: number[];
+}) => {
   const size = 180;
   const radius = size * 0.4;
   const centerX = size / 2;
   const centerY = size / 2;
-  
+
   // Calculate points for each metric on the radar
   const calculatePoint = (value: number, index: number) => {
     const angle = (Math.PI * 2 * index) / metrics.length - Math.PI / 2; // Start at top
@@ -457,22 +467,23 @@ const RadarChart = ({ metrics, values }: { metrics: string[], values: number[] }
     const y = centerY + radius * Math.sin(angle);
     return { x, y };
   });
-  
+
   // Calculate points for the data values
   const dataPoints = values.map((value, index) => calculatePoint(value, index));
-  
+
   // Create path for the data polygon
-  let dataPath = '';
+  let dataPath = "";
   dataPoints.forEach((point, index) => {
-    dataPath += index === 0 ? `M${point.x},${point.y}` : ` L${point.x},${point.y}`;
+    dataPath +=
+      index === 0 ? `M${point.x},${point.y}` : ` L${point.x},${point.y}`;
   });
-  dataPath += ' Z'; // Close the path
-  
+  dataPath += " Z"; // Close the path
+
   // Create background circles for scale reference
-  const circles = [0.2, 0.4, 0.6, 0.8, 1].map(scale => ({
+  const circles = [0.2, 0.4, 0.6, 0.8, 1].map((scale) => ({
     cx: centerX,
     cy: centerY,
-    r: radius * scale
+    r: radius * scale,
   }));
 
   return (
@@ -490,7 +501,7 @@ const RadarChart = ({ metrics, values }: { metrics: string[], values: number[] }
           opacity={0.3}
         />
       ))}
-      
+
       {/* Axis lines */}
       {axisPoints.map((point, i) => (
         <line
@@ -504,7 +515,7 @@ const RadarChart = ({ metrics, values }: { metrics: string[], values: number[] }
           opacity={0.5}
         />
       ))}
-      
+
       {/* Data polygon */}
       <path
         d={dataPath}
@@ -513,18 +524,12 @@ const RadarChart = ({ metrics, values }: { metrics: string[], values: number[] }
         stroke="#7f56d9"
         strokeWidth="2"
       />
-      
+
       {/* Data points */}
       {dataPoints.map((point, i) => (
-        <circle
-          key={i}
-          cx={point.x}
-          cy={point.y}
-          r={3}
-          fill="#d8b4fe"
-        />
+        <circle key={i} cx={point.x} cy={point.y} r={3} fill="#d8b4fe" />
       ))}
-      
+
       {/* Metric labels */}
       {axisPoints.map((point, i) => {
         // Adjust label position based on quadrant
@@ -532,12 +537,14 @@ const RadarChart = ({ metrics, values }: { metrics: string[], values: number[] }
         const angle = (Math.PI * 2 * i) / metrics.length - Math.PI / 2;
         const labelX = centerX + labelRadius * Math.cos(angle);
         const labelY = centerY + labelRadius * Math.sin(angle);
-        
+
         // Adjust text-anchor based on position
         let textAnchor = "middle";
-        if (angle > -Math.PI * 0.25 && angle < Math.PI * 0.25) textAnchor = "start";
-        else if (angle > Math.PI * 0.75 || angle < -Math.PI * 0.75) textAnchor = "end";
-        
+        if (angle > -Math.PI * 0.25 && angle < Math.PI * 0.25)
+          textAnchor = "start";
+        else if (angle > Math.PI * 0.75 || angle < -Math.PI * 0.75)
+          textAnchor = "end";
+
         return (
           <text
             key={i}
@@ -546,7 +553,7 @@ const RadarChart = ({ metrics, values }: { metrics: string[], values: number[] }
             textAnchor={textAnchor}
             dominantBaseline="middle"
             fill="#d8b4fe"
-            fontSize="10"
+            fontSize="8"
           >
             {metrics[i]}
           </text>
@@ -564,25 +571,35 @@ const Sparkline = ({ data, color }) => {
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
-  
+
   const points = data.map((value, index) => {
     const x = (index / (data.length - 1)) * width;
-    const y = (height * 0.4) + ((value - min) / range) * (height * 0.1);
+    const y = height * 0.4 + ((value - min) / range) * (height * 0.1);
     return `${x},${y}`;
   });
-  
-  const fillPathD = `M0,${height} L0,${points[0].split(',')[1]} L${points.join(' L')} L${width},${points[points.length-1].split(',')[1]} L${width},${height} Z`;
-  const strokePathD = `M${points.join(' L')}`;
-  
+
+  const fillPathD = `M0,${height} L0,${points[0].split(",")[1]} L${points.join(
+    " L"
+  )} L${width},${
+    points[points.length - 1].split(",")[1]
+  } L${width},${height} Z`;
+  const strokePathD = `M${points.join(" L")}`;
+
   return (
-    <svg 
-      width="100%" 
-      height="100%" 
-      viewBox={`0 0 ${width} ${height}`} 
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
       <defs>
-        <linearGradient id={`gradient-${color.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient
+          id={`gradient-${color.replace("#", "")}`}
+          x1="0%"
+          y1="0%"
+          x2="0%"
+          y2="100%"
+        >
           <stop offset="0%" stopColor={color} stopOpacity="0.8" />
           <stop offset="40%" stopColor={color} stopOpacity="0.5" />
           <stop offset="70%" stopColor={color} stopOpacity="0.2" />
@@ -590,16 +607,11 @@ const Sparkline = ({ data, color }) => {
         </linearGradient>
       </defs>
       <path
-        d={fillPathD}  
-        fill={`url(#gradient-${color.replace('#', '')})`}
+        d={fillPathD}
+        fill={`url(#gradient-${color.replace("#", "")})`}
         stroke="none"
       />
-      <path
-        d={strokePathD}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-      />
+      <path d={strokePathD} fill="none" stroke={color} strokeWidth="1.5" />
     </svg>
   );
 };
@@ -634,7 +646,9 @@ const SuccessNotification = styled.div`
 const Agents: React.FC = () => {
   // Toggle between List view (false) and Graph view (true)
   const [isDetailView, setIsDetailView] = useState(false);
-  const [expandedAgentIndex, setExpandedAgentIndex] = useState<number | null>(null);
+  const [expandedAgentIndex, setExpandedAgentIndex] = useState<number | null>(
+    null
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAgentName, setNewAgentName] = useState("");
   const [newAgentDescription, setNewAgentDescription] = useState("");
@@ -656,11 +670,13 @@ const Agents: React.FC = () => {
           accuracy: "70%",
           reliability: "70%",
           efficiency: "70%",
-          learning: "70%"
+          learning: "70%",
         },
         // Add default sparkline data if not available
-        sparklineData: doc.data().sparklineData || [10, 12, 15, 13, 17, 14, 15, 16, 18, 17],
-        sparklineColor: doc.data().sparklineColor || "#7f56d9"
+        sparklineData: doc.data().sparklineData || [
+          10, 12, 15, 13, 17, 14, 15, 16, 18, 17,
+        ],
+        sparklineColor: doc.data().sparklineColor || "#7f56d9",
       }));
       setAgentsData(agents);
     });
@@ -695,7 +711,7 @@ const Agents: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newAgent = {
       name: newAgentName,
       description: newAgentDescription,
@@ -707,10 +723,10 @@ const Agents: React.FC = () => {
         accuracy: "75%",
         reliability: "80%",
         efficiency: "65%",
-        learning: "60%"
+        learning: "60%",
       },
       sparklineData: [5, 8, 10, 12, 15, 13, 14, 16, 15, 17],
-      sparklineColor: "#7f56d9"
+      sparklineColor: "#7f56d9",
     };
 
     try {
@@ -729,7 +745,9 @@ const Agents: React.FC = () => {
         <ControlButton onClick={handleBack}>
           <ArrowLeft size={18} /> Back
         </ControlButton>
-        <CenteredTitle>{isDetailView ? "Universe" : "Available Agents"}</CenteredTitle>
+        <CenteredTitle>
+          {isDetailView ? "Universe" : "Available Agents"}
+        </CenteredTitle>
         <ControlButton onClick={goToDashboard}>
           <Home size={18} /> Dashboard
         </ControlButton>
@@ -761,28 +779,40 @@ const Agents: React.FC = () => {
               isExpanded={expandedAgentIndex === index}
               onClick={() => toggleAgentExpanded(index)}
             >
-              <AgentTitle isExpanded={expandedAgentIndex === index}>{agent.name}</AgentTitle>
-              <AgentDescription isExpanded={expandedAgentIndex === index}>{agent.description}</AgentDescription>
-              
+              <AgentTitle isExpanded={expandedAgentIndex === index}>
+                {agent.name}
+              </AgentTitle>
+              <AgentDescription isExpanded={expandedAgentIndex === index}>
+                {agent.description}
+              </AgentDescription>
+
               {/* Add Radar Chart */}
               <RadarChartContainer isExpanded={expandedAgentIndex === index}>
-                <RadarChart 
-                  metrics={['Speed', 'Accuracy', 'Reliability', 'Efficiency', 'Learning']} 
+                <RadarChart
+                  metrics={[
+                    "Speed",
+                    "Accuracy",
+                    "Reliability",
+                    "Efficiency",
+                    "Learning",
+                  ]}
                   values={[
-                    parseInt(agent.performance.speed.replace('%', '')) / 100,
-                    parseInt(agent.performance.accuracy.replace('%', '')) / 100,
-                    parseInt(agent.performance.reliability.replace('%', '')) / 100,
-                    parseInt(agent.performance.efficiency.replace('%', '')) / 100,
-                    parseInt(agent.performance.learning.replace('%', '')) / 100
+                    parseInt(agent.performance.speed.replace("%", "")) / 100,
+                    parseInt(agent.performance.accuracy.replace("%", "")) / 100,
+                    parseInt(agent.performance.reliability.replace("%", "")) /
+                      100,
+                    parseInt(agent.performance.efficiency.replace("%", "")) /
+                      100,
+                    parseInt(agent.performance.learning.replace("%", "")) / 100,
                   ]}
                 />
               </RadarChartContainer>
-              
+
               {agent.sparklineData && agent.sparklineColor && (
                 <SparklineContainer isExpanded={expandedAgentIndex === index}>
-                  <Sparkline 
-                    data={agent.sparklineData} 
-                    color={agent.sparklineColor} 
+                  <Sparkline
+                    data={agent.sparklineData}
+                    color={agent.sparklineColor}
                   />
                 </SparklineContainer>
               )}
@@ -845,7 +875,10 @@ const Agents: React.FC = () => {
       {showSuccess && (
         <SuccessNotification>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="white"/>
+            <path
+              d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z"
+              fill="white"
+            />
           </svg>
           Agent created successfully!
         </SuccessNotification>
