@@ -518,6 +518,11 @@ const FocusGraph3D: React.FC = () => {
           nodeEl.style.userSelect = 'none';
           return new CSS2DObject(nodeEl);
         }}
+        nodeColor={node => {
+          if (node.group === 1) return '#8434ed';
+          if (node.group === 2) return '#30c933';
+          return '#b150f2';
+        }}
         nodeThreeObjectExtend={true}
       />
     </div>

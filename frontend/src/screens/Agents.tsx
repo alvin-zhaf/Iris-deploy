@@ -358,7 +358,7 @@ const GraphOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(ellipse at bottom, #3f3f46 0%, #090a0f 100%);
+  background: radial-gradient(ellipse at bottom,rgb(51, 42, 59) 0%, #090a0f 100%);
   animation: ${fadeInUp} 0.6s ease;
   z-index: 10;
   display: flex;
