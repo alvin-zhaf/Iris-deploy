@@ -1,8 +1,12 @@
-import { useState } from "react";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { Button } from "../components/Button";
+import { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 import DeformCanvas from "../components/DeformCanvas";
-import { Globe, LayoutDashboard, Wallet, Orbit, Send } from "lucide-react";
+import { Globe, Orbit, Wallet, Send, LayoutDashboard } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -10,201 +14,250 @@ import {
   TooltipTrigger,
 } from "../components/Tooltip";
 import Logo from "../assets/logo.svg";
-import styled from "styled-components";
-import Dashboard from "./Dashboard";
+import styled, { keyframes, css } from "styled-components";
 import Agents from "./Agents";
 
-function HomeScreen({
-  walletAddress,
-  connectWalletDirectly,
-  sendMessage,
-}: {
-  walletAddress: string;
-  connectWalletDirectly: () => void;
-  sendMessage: (message: string) => void;
-}) {
-  const navigate = useNavigate();
-  const [inputValue, setInputValue] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputValue.trim()) {
-      sendMessage(inputValue);
-      setInputValue("");
-    }
-  };
-
-  return (
-    <Styled.HomeContainer>
-      {/* Background Canvas */}
-      <DeformCanvas />
-
-      {/* Logo and Title */}
-      <Styled.LogoContainer>
-        {/* Div blurred blob */}
-        <div
-          style={{
-            position: "absolute",
-            top: "20%",
-            zIndex: -1,
-            width: "25rem",
-            height: "20rem",
-            backgroundColor: "#8d00ff",
-            borderRadius: "50%",
-            filter: "blur(50px)",
-            opacity: 0.12,
-          }}
-        />
-        <Styled.LogoImage src={Logo} alt="Logo" />
-      </Styled.LogoContainer>
-      <Styled.TitleText>IRIS</Styled.TitleText>
-
-      {/* Top right wallet panel */}
-      <Styled.TopRightPanel>
-        {walletAddress ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Styled.WalletStatusDisplay>
-                  <div className="flex-container">
-                    <div className="pulse-container">
-                      <span className="pulse-ping"></span>
-                      <span className="pulse-dot"></span>
-                    </div>
-                    <span className="connected-text">Connected</span>
-                  </div>
-                </Styled.WalletStatusDisplay>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="wallet-address">
-                  {walletAddress}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <div className="wallet-button-container">
-            <Styled.ConnectButton
-              variant="default"
-              onClick={connectWalletDirectly}
-            >
-              <Wallet size={16} />
-              Connect Wallet
-            </Styled.ConnectButton>
-          </div>
-        )}
-      </Styled.TopRightPanel>
-
-      {/* Floating island for prompt UI */}
-      <Styled.FloatingIsland>
-        <Styled.GlassmorphicContainer>
-          <Styled.PromptHeading>What can I help with?</Styled.PromptHeading>
-          <form onSubmit={handleSubmit} style={{ width: "100%" }}>
-            <Styled.PromptBar>
-              <Styled.PromptInput
-                type="text"
-                placeholder="Ask anything"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-              <Styled.SendButton type="submit">
-                <Send size={18} />
-              </Styled.SendButton>
-            </Styled.PromptBar>
-          </form>
-
-          <Styled.ButtonRow>
-            <Styled.ConnectButton onClick={() => navigate("/dashboard")}>
-              <LayoutDashboard size={18} />
-              Dashboard
-            </Styled.ConnectButton>
-            <Styled.ConnectButton onClick={() => navigate("/universe")}>
-              <Orbit size={18} />
-              Universe
-            </Styled.ConnectButton>
-            <Styled.ConnectButton onClick={() => navigate("/marketplace")}>
-              <Globe size={18} />
-              Marketplace
-            </Styled.ConnectButton>
-          </Styled.ButtonRow>
-        </Styled.GlassmorphicContainer>
-      </Styled.FloatingIsland>
-    </Styled.HomeContainer>
-  );
+/* ================================================
+   ModalWorkflow Component – Displays Workflow Timeline
+   ================================================ */
+interface Workflow {
+  id: string;
+  title: string;
+  detail: string;
+  status: string;
 }
 
-function App() {
-  const [walletAddress, setWalletAddress] = useState<string>("");
+interface ModalWorkflowProps {
+  wsData?: string;
+  onClose: () => void;
+}
 
-  const sendMessage = (message: string) => {
-    // Create a new WebSocket connection for this message
-    const ws = new WebSocket("ws://localhost:8000/ws");
+// Keyframe animations for the status dots
+const glow = keyframes`
+  0% { box-shadow: 0 0 6px rgba(40, 167, 69, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(40, 167, 69, 0.8); }
+  100% { box-shadow: 0 0 6px rgba(40, 167, 69, 0.4); }
+`;
 
-    ws.onopen = () => {
-      console.log("WebSocket connection opened for sending message");
-      ws.send(JSON.stringify({ input: message, wallet: walletAddress }));
-      console.log(`Message sent: ${message}`);
+const pulseRing = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(255,165,0, 0.6); }
+  50% { box-shadow: 0 0 0 10px rgba(255,165,0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,165,0, 0); }
+`;
 
-      // Set up a handler for any response that might come back
-      ws.onmessage = (event) => {
-        const response = event.data;
-        console.log("Message received:", response);
+const flicker = keyframes`
+  0% { transform: translateX(0); }
+  10% { transform: translateX(-1px); }
+  20% { transform: translateX(1px); }
+  30% { transform: translateX(-1px); }
+  40% { transform: translateX(1px); }
+  50% { transform: translateX(-1px); }
+  60% { transform: translateX(1px); }
+  70% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+  90% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+`;
 
-        // Close the connection after receiving the response
-        ws.close();
-      };
-    };
+// Styled components for the workflow modal
+const WorkflowHeadingBanner = styled.div`
+  background-color: rgba(127,86,217,0.15);
+  border: 1px solid rgba(127,86,217,0.5);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  text-align: center;
+`;
 
-    ws.onerror = (error) => {
-      console.error("WebSocket error while sending message:", error);
-      ws.close();
-    };
-  };
+const VerticalTimelineContainer = styled.div`
+  position: relative;
+  margin: 2rem 0;
+`;
 
-  const connectWalletDirectly = async () => {
+const TimelineItem = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 2.5rem;
+`;
+
+const TimelineDot = styled.div<{ status: string }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  font-weight: bold;
+  color: #000;
+  background-color: ${({ status }) => {
+    switch (status) {
+      case "success":
+        return "#28a745";
+      case "inProgress":
+        return "#ffa500";
+      case "failure":
+        return "#dc3545";
+      default:
+        return "#777";
+    }
+  }};
+  animation: ${({ status }) => {
+    switch (status) {
+      case "success":
+        return css`${glow} 2s infinite`;
+      case "inProgress":
+        return css`${pulseRing} 2s infinite`;
+      case "failure":
+        return css`${flicker} 0.7s infinite`;
+      default:
+        return "none";
+    }
+  }};
+  &:hover { transform: scale(1.15); }
+`;
+
+const TimelineContent = styled.div`
+  background-color: #1a1a1a;
+  border: 1px solid rgba(127,86,217,0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-left: 1rem;
+  flex: 1;
+`;
+
+const TimelineTitle = styled.h3`
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+`;
+
+const TimelineDetail = styled.p`
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ccc;
+`;
+
+// Define ModalContent and CloseButton for the popup
+const ModalContent = styled.div`
+  background: #0f0f0f;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+  position: relative;
+  padding: 1rem;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+`;
+
+// ModalWorkflow component (workflow timeline inside the modal)
+const ModalWorkflow: React.FC<ModalWorkflowProps> = ({ wsData, onClose }) => {
+  useEffect(() => {
+    console.log("ModalWorkflow mounted with wsData:", wsData);
+  }, [wsData]);
+
+  // Default dummy data if no wsData is provided
+  let workflows: Workflow[] = [
+    {
+      id: "KPD-136",
+      title: "Add text block with background",
+      detail: "CI #227: Pull request #236 by fsylum",
+      status: "success",
+    },
+    {
+      id: "KAP-23",
+      title: "Initial code for the hero full width block",
+      detail: "CI #242 ready_for_review by ridimova",
+      status: "inProgress",
+    },
+    {
+      id: "KPD-141",
+      title: "Main navigation",
+      detail: "CI #225 synchronize by joleenk",
+      status: "failure",
+    },
+    {
+      id: "AG-999",
+      title: "Additional agent check",
+      detail: "Not started or waiting for resources",
+      status: "pending",
+    },
+  ];
+
+  if (wsData) {
     try {
-      if ((window as any).ethereum) {
-        const accounts = await (window as any).ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        if (accounts && accounts.length > 0) {
-          setWalletAddress(accounts[0]);
-          console.log("Direct wallet connection successful:", accounts[0]);
-        }
-      } else {
-        alert(
-          "No Ethereum wallet detected. Please install MetaMask or another supported wallet."
-        );
+      const parsedData = JSON.parse(wsData);
+      if (Array.isArray(parsedData)) {
+        workflows = parsedData;
+        console.log("Parsed workflows from wsData:", workflows);
       }
     } catch (error) {
-      console.error("Error connecting wallet directly:", error);
+      console.error("Error parsing wsData:", error);
     }
-  };
+  }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <HomeScreen
-              walletAddress={walletAddress}
-              connectWalletDirectly={connectWalletDirectly}
-              sendMessage={sendMessage}
-            />
-          }
-        />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/universe" element={<Agents />} />
-      </Routes>
-    </BrowserRouter>
+    <ModalContent>
+      <CloseButton onClick={onClose}>&times;</CloseButton>
+      <WorkflowHeadingBanner>
+        This workflow has a <strong>workflow_dispatch</strong> event trigger
+      </WorkflowHeadingBanner>
+      <VerticalTimelineContainer>
+        {workflows.map((wf, index) => (
+          <TimelineItem key={index}>
+            <TimelineDot
+              status={wf.status}
+              title={`${wf.id} - ${wf.title}\n${wf.detail}`}
+            >
+              {index + 1}
+            </TimelineDot>
+            <TimelineContent>
+              <TimelineTitle>{`${wf.id} - ${wf.title}`}</TimelineTitle>
+              <TimelineDetail>{wf.detail}</TimelineDetail>
+            </TimelineContent>
+          </TimelineItem>
+        ))}
+      </VerticalTimelineContainer>
+    </ModalContent>
   );
-}
+};
 
-export default App;
+/* ================================================
+   Modal Overlay Styling – Covers entire screen with blur
+   ================================================ */
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
+/* ================================================
+   Styled Components for HomeScreen UI
+   ================================================ */
 export const Styled = {
-  /* === Containers & Layout === */
   HomeContainer: styled.div`
     min-height: 100vh;
     color: #ffffff;
@@ -214,9 +267,9 @@ export const Styled = {
   `,
   LogoContainer: styled.div`
     position: absolute;
-    top: 50%; /* Adjust this to center it vertically */
+    top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Center the container */
+    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -224,21 +277,20 @@ export const Styled = {
     pointer-events: none;
   `,
   LogoImage: styled.img`
-    width: 30vw; /* Make the logo larger */
+    width: 30vw;
     max-width: 300px;
     opacity: 0.4;
-    margin-bottom: 200px; /* Adjust spacing */
-    max-width: none;
+    margin-bottom: 200px;
   `,
   TitleText: styled.h1`
-    position: absolute; /* Position the title absolutely inside the page */
-    top: 45%; /* Move the title vertically to the center of the page */
-    left: 50%; /* Move the title horizontally to the center of the page */
-    transform: translate(-50%, -50%); /* Adjust for exact centering */
-    font-size: 8rem; /* Increase the font size for the title */
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8rem;
     font-weight: 900;
     font-family: "kugile";
-    color: #fff; /* White color for the title */
+    color: #fff;
     z-index: 2;
     margin-top: 0;
   `,
@@ -254,7 +306,7 @@ export const Styled = {
   `,
   FloatingIsland: styled.div`
     position: absolute;
-    top: 65%; /* Keep it as it is, this will keep the floating island lower */
+    top: 65%;
     left: 0;
     right: 0;
     display: flex;
@@ -327,9 +379,7 @@ export const Styled = {
       flex-direction: row;
     }
   `,
-
-  /* === Buttons (Uniform style for wallet, dashboard, and marketplace) === */
-  ConnectButton: styled(Button)`
+  ConnectButton: styled.button`
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -351,34 +401,25 @@ export const Styled = {
       transform: scale(0.98);
     }
   `,
-
-  /* === Connected Status Styling === */
   WalletStatusDisplay: styled.div`
-    /* Match ConnectButton dimensions */
     height: 2.5rem;
     padding: 0 1rem;
     background-color: #27272a;
     border-radius: 9999px;
     color: #ffffff;
-    cursor: pointer;
-    
-    /* Match ConnectButton display properties */
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    
     & .flex-container {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       height: 100%;
     }
-    
     & .pulse-container {
       position: relative;
       display: flex;
     }
-    
     & .pulse-ping {
       position: absolute;
       height: 100%;
@@ -388,7 +429,6 @@ export const Styled = {
       opacity: 0.75;
       animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
-    
     & .pulse-dot {
       position: relative;
       display: inline-flex;
@@ -397,12 +437,10 @@ export const Styled = {
       border-radius: 9999px;
       background-color: #22c55e;
     }
-    
     & .connected-text {
       font-size: 0.9rem;
       font-weight: 600;
     }
-    
     @keyframes ping {
       75%, 100% {
         transform: scale(2);
@@ -410,25 +448,208 @@ export const Styled = {
       }
     }
   `,
-
-  /* === Small Inline Styles for animated pulse === */
-  PulseStyles: {
-    pulseCircle: {
-      position: "absolute" as const,
-      width: "100%",
-      height: "100%",
-      borderRadius: "9999px",
-      backgroundColor: "#22c55e",
-      opacity: 0.6,
-      animation: "ping 1s infinite",
-    },
-    pulseDot: {
-      position: "relative" as const,
-      display: "inline-block",
-      width: "0.75rem",
-      height: "0.75rem",
-      borderRadius: "9999px",
-      backgroundColor: "#22c55e",
-    },
-  },
 };
+
+/* ================================================
+   HomeScreen Component – Initial UI
+   ================================================ */
+function HomeScreen({
+  walletAddress,
+  connectWalletDirectly,
+  sendMessage,
+  openWorkflowModal,
+}: {
+  walletAddress: string;
+  connectWalletDirectly: () => void;
+  sendMessage: (message: string) => void;
+  openWorkflowModal: () => void;
+}) {
+  const navigate = useNavigate();
+  const [inputValue, setInputValue] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Submit clicked, inputValue:", inputValue);
+    if (inputValue.trim()) {
+      sendMessage(inputValue);
+      setInputValue("");
+      console.log("Opening workflow modal after submit.");
+      openWorkflowModal();
+    } else {
+      console.log("Input empty. Not sending message.");
+    }
+  };
+
+  return (
+    <Styled.HomeContainer>
+      <DeformCanvas />
+      <Styled.LogoContainer>
+        <div
+          style={{
+            position: "absolute",
+            top: "20%",
+            zIndex: -1,
+            width: "25rem",
+            height: "20rem",
+            backgroundColor: "#8d00ff",
+            borderRadius: "50%",
+            filter: "blur(50px)",
+            opacity: 0.12,
+          }}
+        />
+        <Styled.LogoImage src={Logo} alt="Logo" />
+      </Styled.LogoContainer>
+      <Styled.TitleText>IRIS</Styled.TitleText>
+      <Styled.TopRightPanel>
+        {walletAddress ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Styled.WalletStatusDisplay>
+                  <div className="flex-container">
+                    <div className="pulse-container">
+                      <span className="pulse-ping"></span>
+                      <span className="pulse-dot"></span>
+                    </div>
+                    <span className="connected-text">Connected</span>
+                  </div>
+                </Styled.WalletStatusDisplay>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="wallet-address">{walletAddress}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <div className="wallet-button-container">
+            <Styled.ConnectButton onClick={connectWalletDirectly}>
+              <Wallet size={16} />
+              Connect Wallet
+            </Styled.ConnectButton>
+          </div>
+        )}
+      </Styled.TopRightPanel>
+      <Styled.FloatingIsland>
+        <Styled.GlassmorphicContainer>
+          <Styled.PromptHeading>What can I help with?</Styled.PromptHeading>
+          <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+            <Styled.PromptBar>
+              <Styled.PromptInput
+                type="text"
+                placeholder="Ask anything"
+                value={inputValue}
+                onChange={(e) => {
+                  console.log("Input changed:", e.target.value);
+                  setInputValue(e.target.value);
+                }}
+              />
+              <Styled.SendButton type="submit">
+                <Send size={18} />
+              </Styled.SendButton>
+            </Styled.PromptBar>
+          </form>
+          <Styled.ButtonRow>
+            {/* No separate Dashboard button is needed now, but kept for navigation if desired */}
+            <Styled.ConnectButton onClick={openWorkflowModal}>
+              <LayoutDashboard size={18} />
+              Dashboard
+            </Styled.ConnectButton>
+            <Styled.ConnectButton onClick={() => navigate("/universe")}>
+              <Orbit size={18} />
+              Universe
+            </Styled.ConnectButton>
+            <Styled.ConnectButton onClick={() => navigate("/marketplace")}>
+              <Globe size={18} />
+              Marketplace
+            </Styled.ConnectButton>
+          </Styled.ButtonRow>
+        </Styled.GlassmorphicContainer>
+      </Styled.FloatingIsland>
+    </Styled.HomeContainer>
+  );
+}
+
+/* ================================================
+   Main App Component – Puts Everything Together
+   ================================================ */
+function App() {
+  const [walletAddress, setWalletAddress] = useState<string>("");
+  const [wsData, setWsData] = useState<string | null>(null);
+  const [showWorkflowModal, setShowWorkflowModal] = useState<boolean>(false);
+
+  const sendMessage = (message: string) => {
+    console.log("Opening WebSocket to send message:", message);
+    const ws = new WebSocket("ws://localhost:8000/ws");
+    ws.onopen = () => {
+      console.log("WebSocket connection opened for sending message");
+      ws.send(JSON.stringify({ input: message, wallet: walletAddress }));
+      console.log(`Message sent: ${message}`);
+    };
+    ws.onmessage = (event) => {
+      const response = event.data;
+      console.log("WebSocket message received:", response);
+      setWsData(response);
+      ws.close();
+    };
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      ws.close();
+    };
+  };
+
+  const connectWalletDirectly = async () => {
+    try {
+      if ((window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        if (accounts && accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+          console.log("Wallet connected:", accounts[0]);
+        }
+      } else {
+        alert("No Ethereum wallet detected. Please install MetaMask.");
+      }
+    } catch (error) {
+      console.error("Error connecting wallet:", error);
+    }
+  };
+
+  const openWorkflowModal = () => {
+    console.log("Opening workflow modal");
+    setShowWorkflowModal(true);
+  };
+
+  const closeWorkflowModal = () => {
+    console.log("Closing workflow modal");
+    setShowWorkflowModal(false);
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <HomeScreen
+                walletAddress={walletAddress}
+                connectWalletDirectly={connectWalletDirectly}
+                sendMessage={sendMessage}
+                openWorkflowModal={openWorkflowModal}
+              />
+              {showWorkflowModal && (
+                <ModalOverlay>
+                  <ModalWorkflow wsData={wsData || undefined} onClose={closeWorkflowModal} />
+                </ModalOverlay>
+              )}
+            </>
+          }
+        />
+        <Route path="/universe" element={<Agents />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
