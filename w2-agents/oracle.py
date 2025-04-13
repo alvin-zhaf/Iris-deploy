@@ -166,6 +166,19 @@ async def trigger_external_action(me, *args):
         next_name = response.choices[0].message.tool_calls[0].function.name
         console.print(f"[bold green]Next AI: {next_name}[/]")
         next_address = [agent["address"] for agent in agents if agent["id"] == next_name][0]
+        websocket.current_websocket.send_json({
+            "type": "progress",
+            "data": {
+                "wallet": wallet,
+                "input": data,
+                "original": original,
+                "hops": hops + [me],
+                "next": next_name,
+                "current_agent": my_agent,
+                "next_agent": [agent for agent in agents if agent["id"] == next_name][0],
+                "next_address": next_address
+            }
+        })
         agent.call_contract_function(w3, wallet, eval(response.choices[0].message.tool_calls[0].function.arguments)["input"], original, hops + [me], logger, next_address)
     else:
         text_response = response.choices[0].message.content

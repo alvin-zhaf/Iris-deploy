@@ -18,6 +18,8 @@ import asyncio
 # Atomic String:
 result = ""
 
+current_websocket = None
+
 active_sockets = set()
 set_lock = asyncio.Lock()
 
@@ -49,7 +51,9 @@ async def start_background_loop():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    global current_websocket
     await websocket.accept()
+    current_websocket = websocket
     data = json.loads(await websocket.receive_text())
     try:
         w3 = Web3(Web3.HTTPProvider(f"https://eth-sepolia.g.alchemy.com/v2/{os.getenv('ALCHEMY_API_KEY')}"))
@@ -70,5 +74,6 @@ async def websocket_endpoint(websocket: WebSocket):
         "type": "response",
         "data": my_result
     })
+    current_websocket = None
     await websocket.close()
     print("WebSocket closed.")

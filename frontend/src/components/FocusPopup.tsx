@@ -58,10 +58,10 @@ const SciFiCardSVG = () => {
 
   const topArcRotation = `rotate(${rotationOffset.y * 0.5} 300 300)`;
   const bottomArcRotation = `rotate(${rotationOffset.y * -0.5} 300 300)`;
-  const shrinkScale = isMouseDown ? "scale(0.95)" : "scale(1)";
+  const shrinkScale = isMouseDown ? "scale(0.75)" : "scale(0.8)";
 
   return (
-    <AnimatedSVG width="600" height="600" xmlns="http://www.w3.org/2000/svg">
+    <AnimatedSVG width="400" height="400" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur" />
@@ -86,7 +86,7 @@ const SciFiCardSVG = () => {
           r="285"
           fill="none"
           stroke="#d2c2f0"
-          strokeWidth="1"
+          strokeWidth="2"
           strokeDasharray="10 5"
           filter="url(#glow)"
         />
@@ -96,7 +96,7 @@ const SciFiCardSVG = () => {
           r="255"
           fill="none"
           stroke="#d2c2f0"
-          strokeWidth="1"
+          strokeWidth="2"
           strokeDasharray="2 4"
         />
 
@@ -104,7 +104,7 @@ const SciFiCardSVG = () => {
           <path
             d="M 90 300 A 210 210 0 0 1 300 90"
             stroke="#d2c2f0"
-            strokeWidth="1"
+            strokeWidth="2"
             fill="none"
             filter="url(#glow)"
           />
@@ -114,7 +114,7 @@ const SciFiCardSVG = () => {
           <path
             d="M 510 300 A 210 210 0 0 1 300 510"
             stroke="#d2c2f0"
-            strokeWidth="1"
+            strokeWidth="2"
             fill="none"
             filter="url(#glow)"
           />
@@ -122,7 +122,7 @@ const SciFiCardSVG = () => {
 
         <g
           stroke="#d2c2f0"
-          strokeWidth="1"
+          strokeWidth="2"
           transform={`rotate(${
             (rotationOffset.y + rotationOffset.x) * 0.2
           } 300 300)`}
