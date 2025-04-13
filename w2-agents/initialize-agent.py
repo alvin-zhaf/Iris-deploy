@@ -11,6 +11,9 @@ load_dotenv()
 
 import os
 import json
+import firebase_admin
+from firebase_admin import firestore
+from firebase_admin import credentials
 import time
 import logging
 from web3 import Web3
@@ -26,23 +29,42 @@ logging.basicConfig(
 logger = logging.getLogger("agent_initializer")
 console = Console()
 
+cred = credentials.Certificate("cred.json")
+app = firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+
 # Define your initial agents here
 INITIAL_AGENTS = [
     {
         "name": "Data Retriever",
-        "description": "Fetches external data from APIs and returns it to the blockchain"
+        "description": "Fetches external data from APIs and returns it to the blockchain",
+        "id": "data_retriever"
     },
     {
         "name": "Market Analyzer",
-        "description": "Analyzes cryptocurrency market data and provides insights"
+        "description": "Analyzes cryptocurrency market data and provides insights",
+        "id": "market_analyzer"
     },
     {
         "name": "Weather Oracle",
-        "description": "Retrieves weather data for smart contracts that need weather information"
+        "description": "Retrieves weather data for smart contracts that need weather information",
+        "id": "weather_oracle"
     },
     {
         "name": "Transaction Validator",
-        "description": "Verifies external transactions and confirms their validity on-chain"
+        "description": "Verifies external transactions and confirms their validity on-chain",
+        "id": "transaction_validator"
+    },
+    {
+		"name": "Data Aggregator",
+		"description": "Aggregates data from multiple sources and provides a unified view",
+        "id": "data_aggregator"
+	},
+    {
+        "name": "Price Oracle",
+        "description": "Provides real-time price data for various cryptocurrencies",
+        "id": "price_oracle"
     }
 ]
 
@@ -331,6 +353,11 @@ def initialize_agents():
             # Check if agent already exists
             exists, address = agent_exists(agent_factory, wallet_address, name)
             if exists:
+                db.collection("agents").document(agent_config["id"]).set({
+                    "name": name,
+                    "description": description,
+                    "address": address
+                })
                 logger.info(f"Agent '{name}' already exists at {address}")
                 continue
             
@@ -343,7 +370,17 @@ def initialize_agents():
             )
             
             if tx_receipt:
-                logger.warning(f"Agent '{name}' created but couldn't extract address from logs")
+                print(tx_receipt)
+                exists, address = agent_exists(agent_factory, wallet_address, name)
+                if exists:
+                    db.collection("agents").document(agent_config["id"]).set({
+                        "name": name,
+                        "description": description,
+                        "address": address
+                    })
+                    logger.info(f"Agent '{name}' created successfully at {address}")
+                else:
+                    logger.warning(f"Agent '{name}' created but couldn't extract address from logs")
             else:
                 logger.error(f"Failed to create agent: {name}")
             
