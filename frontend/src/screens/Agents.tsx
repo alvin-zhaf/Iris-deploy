@@ -798,11 +798,11 @@ const Agents: React.FC = () => {
                     "Learning",
                   ]}
                   values={[
-                    agent.performance.speed / 10,
-                    agent.performance.accuracy / 10,
-                    agent.performance.reliability / 10,
-                    agent.performance.efficiency / 10,
-                    agent.performance.learning / 10
+                    agent.performance.speed / 100,
+                    agent.performance.accuracy / 100,
+                    agent.performance.reliability / 100,
+                    agent.performance.efficiency / 100,
+                    agent.performance.learning / 100
                   ]}
                 />
               </RadarChartContainer>
