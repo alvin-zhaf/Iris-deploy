@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { keyframes, css } from "styled-components";
 import {
   BarChart,
@@ -7,9 +7,11 @@ import {
   AreaChart,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../firebaseConfig";
 
 /* -------------------------------------------------------------------------- */
 /*                              Keyframe Animations                           */
@@ -86,12 +88,12 @@ const Branding = styled.div<SidebarProps>`
   justify-content: center;
   width: 100%;
   margin-bottom: 2rem;
-  
+
   img {
     width: 40px;
     height: 40px;
   }
-  
+
   span {
     margin-left: ${(props) => (props.expanded ? "0.5rem" : "0")};
     margin-top: ${(props) => (props.expanded ? "0.2rem" : "0")};
@@ -121,10 +123,15 @@ const IconItem = styled.div<SidebarProps>`
   padding: 0.5rem;
   border-radius: 6px;
   transition: background 0.2s ease;
-  
-  &:hover { background: rgba(127, 86, 217, 0.15); }
-  
-  svg { stroke: #fff; transition: stroke 0.2s ease; }
+
+  &:hover {
+    background: rgba(127, 86, 217, 0.15);
+  }
+
+  svg {
+    stroke: #fff;
+    transition: stroke 0.2s ease;
+  }
 `;
 
 const IconLabel = styled.span`
@@ -146,9 +153,11 @@ const ExitButton = styled.button<SidebarProps>`
   padding: 0.5rem;
   margin-top: 2rem;
   transition: all 0.2s ease;
-  
-  &:hover { color: #a288f4; }
-  
+
+  &:hover {
+    color: #a288f4;
+  }
+
   span {
     margin-left: 0.5rem;
     white-space: nowrap;
@@ -162,8 +171,68 @@ const ToggleContainer = styled.div<SidebarProps>`
   display: flex;
   justify-content: center;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.5rem;us
 `;
+
+const FirebaseLogs: React.FC = () => {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch logs in realtime from the Firestore "logs" collection
+  useEffect(() => {
+    const logsCollection = collection(db, "logs");
+    const unsubscribe = onSnapshot(logsCollection, (snapshot) => {
+      const fetchedLogs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setLogs(fetchedLogs);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  if (loading) {
+    return (
+      <ContentPanel>
+        <h2>Loading Logs...</h2>
+      </ContentPanel>
+    );
+  }
+
+  return (
+    <ContentPanel>
+      <h2>Firebase Logs</h2>
+      {logs.length === 0 ? (
+        <p>No logs available.</p>
+      ) : (
+        logs.map((log, index) => (
+          <div
+            key={log.id}
+            style={{
+              marginBottom: "1rem",
+              paddingBottom: "0.5rem",
+              borderBottom: "1px solid #52525b",
+            }}
+          >
+            <h3 style={{ margin: "0 0 0.3rem 0" }}>
+              {log.title || `Log ${index + 1}`}
+            </h3>
+            <p style={{ margin: "0 0 0.3rem 0" }}>
+              {log.message || "No message provided."}
+            </p>
+            {log.timestamp && (
+              <small style={{ color: "#ccc" }}>
+                {new Date(log.timestamp).toLocaleString()}
+              </small>
+            )}
+          </div>
+        ))
+      )}
+    </ContentPanel>
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /*                           Main Content Area                                */
@@ -184,8 +253,8 @@ const ContentArea = styled.div<ContentAreaProps>`
 /*                      Workflow Heading Banner (Optional)                  */
 /* -------------------------------------------------------------------------- */
 const WorkflowHeadingBanner = styled.div`
-  background-color: rgba(127,86,217,0.15);
-  border: 1px solid rgba(127,86,217,0.5);
+  background-color: rgba(127, 86, 217, 0.15);
+  border: 1px solid rgba(127, 86, 217, 0.5);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -240,23 +309,31 @@ const TimelineDot = styled.div<{ status: string }>`
   animation: ${({ status }) => {
     switch (status) {
       case "success":
-        return css`${glow} 2s infinite`;
+        return css`
+          ${glow} 2s infinite
+        `;
       case "inProgress":
-        return css`${pulseRing} 2s infinite`;
+        return css`
+          ${pulseRing} 2s infinite
+        `;
       case "failure":
-        return css`${flicker} 0.7s infinite`;
+        return css`
+          ${flicker} 0.7s infinite
+        `;
       default:
         return "none";
     }
   }};
 
-  &:hover { transform: scale(1.15); }
+  &:hover {
+    transform: scale(1.15);
+  }
 `;
 
 // The content card for each timeline item
 const TimelineContent = styled.div`
   background-color: #1a1a1a;
-  border: 1px solid rgba(127,86,217,0.3);
+  border: 1px solid rgba(127, 86, 217, 0.3);
   border-radius: 8px;
   padding: 1rem;
   margin-left: 1rem;
@@ -283,26 +360,26 @@ const dummyWorkflows = [
     id: "KPD-136",
     title: "Add text block with background",
     detail: "CI #227: Pull request #236 by fsylum",
-    status: "success"
+    status: "success",
   },
   {
     id: "KAP-23",
     title: "Initial code for the hero full width block",
     detail: "CI #242 ready_for_review by ridimova",
-    status: "inProgress"
+    status: "inProgress",
   },
   {
     id: "KPD-141",
     title: "Main navigation",
     detail: "CI #225 synchronize by joleenk",
-    status: "failure"
+    status: "failure",
   },
   {
     id: "AG-999",
     title: "Additional agent check",
     detail: "Not started or waiting for resources",
-    status: "pending"
-  }
+    status: "pending",
+  },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -317,7 +394,10 @@ const WorkflowTimeline: React.FC = () => {
       <VerticalTimelineContainer>
         {dummyWorkflows.map((wf, index) => (
           <TimelineItem key={index}>
-            <TimelineDot status={wf.status} title={`${wf.id} - ${wf.title}\n${wf.detail}`}>
+            <TimelineDot
+              status={wf.status}
+              title={`${wf.id} - ${wf.title}\n${wf.detail}`}
+            >
               {index + 1}
             </TimelineDot>
             <TimelineContent>
@@ -341,13 +421,16 @@ const panelFadeIn = keyframes`
 
 const ContentPanel = styled.div`
   background-color: #1a1a1a;
-  border: 1px solid rgba(127,86,217,0.3);
+  border: 1px solid rgba(127, 86, 217, 0.3);
   border-radius: 8px;
   padding: 1.5rem;
   animation: ${panelFadeIn} 0.3s ease-out;
 `;
 
-const InfoPanel: React.FC<{ title: string; content: string }> = ({ title, content }) => (
+const InfoPanel: React.FC<{ title: string; content: string }> = ({
+  title,
+  content,
+}) => (
   <ContentPanel>
     <h2>{title}</h2>
     <p>{content}</p>
@@ -358,7 +441,9 @@ const InfoPanel: React.FC<{ title: string; content: string }> = ({ title, conten
 /*                           Main Dashboard Component                         */
 /* -------------------------------------------------------------------------- */
 const Dashboard: React.FC = () => {
-  const [activePanel, setActivePanel] = useState<"workflow" | "line" | "pie" | "area" | null>(null);
+  const [activePanel, setActivePanel] = useState<
+    "workflow" | "line" | "pie" | "area" | null
+  >(null);
   const [isSidebarExpanded, setSidebarExpanded] = useState<boolean>(false);
   const navigate = useNavigate();
 
@@ -370,19 +455,31 @@ const Dashboard: React.FC = () => {
           <span>Iris</span>
         </Branding>
         <IconsWrapper>
-          <IconItem expanded={isSidebarExpanded} onClick={() => setActivePanel("workflow")}>
+          <IconItem
+            expanded={isSidebarExpanded}
+            onClick={() => setActivePanel("workflow")}
+          >
             <BarChart size={30} />
-            {isSidebarExpanded && <IconLabel>Workflow</IconLabel>}
+            {isSidebarExpanded && <IconLabel>Logs</IconLabel>}
           </IconItem>
-          <IconItem expanded={isSidebarExpanded} onClick={() => setActivePanel("line")}>
+          <IconItem
+            expanded={isSidebarExpanded}
+            onClick={() => setActivePanel("line")}
+          >
             <LineChart size={30} />
             {isSidebarExpanded && <IconLabel>Line Chart</IconLabel>}
           </IconItem>
-          <IconItem expanded={isSidebarExpanded} onClick={() => setActivePanel("pie")}>
+          <IconItem
+            expanded={isSidebarExpanded}
+            onClick={() => setActivePanel("pie")}
+          >
             <PieChart size={30} />
             {isSidebarExpanded && <IconLabel>Pie Chart</IconLabel>}
           </IconItem>
-          <IconItem expanded={isSidebarExpanded} onClick={() => setActivePanel("area")}>
+          <IconItem
+            expanded={isSidebarExpanded}
+            onClick={() => setActivePanel("area")}
+          >
             <AreaChart size={30} />
             {isSidebarExpanded && <IconLabel>Area Chart</IconLabel>}
           </IconItem>
@@ -391,12 +488,19 @@ const Dashboard: React.FC = () => {
           <LogOut size={20} />
           <span>Exit</span>
         </ExitButton>
-        <ToggleContainer expanded={isSidebarExpanded} onClick={() => setSidebarExpanded(prev => !prev)}>
-          {isSidebarExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+        <ToggleContainer
+          expanded={isSidebarExpanded}
+          onClick={() => setSidebarExpanded((prev) => !prev)}
+        >
+          {isSidebarExpanded ? (
+            <ChevronLeft size={20} />
+          ) : (
+            <ChevronRight size={20} />
+          )}
         </ToggleContainer>
       </Sidebar>
       <ContentArea expanded={isSidebarExpanded}>
-        {activePanel === "workflow" && <WorkflowTimeline />}
+        {activePanel === "workflow" && <FirebaseLogs />}
         {activePanel === "line" && (
           <InfoPanel
             title="Line Chart Details"
