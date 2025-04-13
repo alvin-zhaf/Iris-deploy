@@ -6,7 +6,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import DeformCanvas from "../components/DeformCanvas";
-import { Globe, Orbit, Wallet, Send, LayoutDashboard } from "lucide-react";
+import { Orbit, Wallet, Send, LayoutDashboard } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -16,6 +16,7 @@ import {
 import Logo from "../assets/logo.svg";
 import styled, { keyframes, css } from "styled-components";
 import Agents from "./Agents";
+import Dashboard from "./Dashboard";
 
 /* ================================================
    ModalWorkflow Component – Displays Workflow Timeline
@@ -550,17 +551,13 @@ function HomeScreen({
           </form>
           <Styled.ButtonRow>
             {/* No separate Dashboard button is needed now, but kept for navigation if desired */}
-            <Styled.ConnectButton onClick={openWorkflowModal}>
+            <Styled.ConnectButton onClick={() => navigate("/dashboard")}>
               <LayoutDashboard size={18} />
               Dashboard
             </Styled.ConnectButton>
             <Styled.ConnectButton onClick={() => navigate("/universe")}>
               <Orbit size={18} />
               Universe
-            </Styled.ConnectButton>
-            <Styled.ConnectButton onClick={() => navigate("/marketplace")}>
-              <Globe size={18} />
-              Marketplace
             </Styled.ConnectButton>
           </Styled.ButtonRow>
         </Styled.GlassmorphicContainer>
@@ -647,6 +644,7 @@ function App() {
           }
         />
         <Route path="/universe" element={<Agents />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   );
