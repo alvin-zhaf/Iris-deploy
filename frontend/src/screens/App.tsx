@@ -16,27 +16,31 @@ import {
 import Logo from "../assets/logo.svg";
 import styled, { keyframes, css } from "styled-components";
 import Agents from "./Agents";
+import Dashboard from "./Dashboard";
 
 /* ================================================
-   ModalWorkflow Component – Popup showing Workflow Timeline
+   Types and Interfaces
    ================================================ */
 interface Workflow {
   id: string;
   title: string;
   detail: string;
-  status: string;
+  status: "progress_started" | "progress_finished" | "inProgress" | "failure" | "response";
 }
 
+/* ================================================
+   ModalWorkflow Component – Displays Workflow Timeline
+   ================================================ */
 interface ModalWorkflowProps {
-  wsData?: string;
+  workflows: Workflow[];
   onClose: () => void;
 }
 
-// Keyframe animations for dots
+// --- Keyframe Animations for Status Dots ---
 const glow = keyframes`
-  0% { box-shadow: 0 0 6px rgba(40, 167, 69, 0.4); }
-  50% { box-shadow: 0 0 16px rgba(40, 167, 69, 0.8); }
-  100% { box-shadow: 0 0 6px rgba(40, 167, 69, 0.4); }
+  0% { box-shadow: 0 0 6px rgba(40,167,69,0.4); }
+  50% { box-shadow: 0 0 16px rgba(40,167,69,0.8); }
+  100% { box-shadow: 0 0 6px rgba(40,167,69,0.4); }
 `;
 
 const pulseRing = keyframes`
@@ -59,7 +63,13 @@ const flicker = keyframes`
   100% { transform: translateX(0); }
 `;
 
-// Loading Animation: three dots
+// Custom yellow flicker for progress_started
+const yellowFlicker = keyframes`
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+`;
+
+// Loading (animated ellipsis)
 const dotAnimation = keyframes`
   0%, 20%, 40%, 100% { opacity: 0.2; transform: translateY(0); }
   50% { opacity: 1; transform: translateY(-5px); }
@@ -82,7 +92,7 @@ const Dot = styled.span`
   &:nth-child(3) { animation-delay: 0.4s; }
 `;
 
-// Styled Components for the modal workflow UI
+// --- Styled Components for ModalWorkflow UI ---
 const WorkflowHeadingBanner = styled.div`
   background-color: rgba(127,86,217,0.15);
   border: 1px solid rgba(127,86,217,0.5);
@@ -104,7 +114,8 @@ const TimelineItem = styled.div`
   margin-bottom: 2.5rem;
 `;
 
-// Updated TimelineDot: mapping statuses to colors
+// TimelineDot: For id "input", always use "progress_finished" (green),
+// otherwise, map based on the event's status.
 const TimelineDot = styled.div<{ status: string }>`
   width: 24px;
   height: 24px;
@@ -118,17 +129,20 @@ const TimelineDot = styled.div<{ status: string }>`
   font-weight: bold;
   color: #000;
   background-color: ${({ status }) => {
-    if (status === "progress_started") return "#FFC107"; // yellow for started
-    if (status === "progress_finished") return "#28a745"; // green for finished
-    if (status === "inProgress") return "#FFA500"; // orange for processing
-    if (status === "failure") return "#dc3545"; // red for failure
-    return "#777"; // fallback
+    if (status === "progress_started") return "#FFC107"; // yellow
+    if (status === "progress_finished") return "#28a745"; // green
+    if (status === "inProgress") return "#FFA500"; // orange
+    if (status === "failure") return "#dc3545"; // red
+    if (status === "response") return "#777"; // default for final response
+    return "#777";
   }};
   animation: ${({ status }) => {
     if (status === "progress_started")
-      return css`${pulseRing} 2s infinite`;
-    if (status === "inProgress")
+      return css`${yellowFlicker} 1s infinite`;
+    if (status === "progress_finished")
       return css`${glow} 2s infinite`;
+    if (status === "inProgress")
+      return css`${pulseRing} 2s infinite`;
     if (status === "failure")
       return css`${flicker} 0.7s infinite`;
     return "none";
@@ -180,39 +194,12 @@ const CloseButton = styled.button`
   cursor: pointer;
 `;
 
-// ModalWorkflow: If wsData is not available or if no workflow items can be built, show loading animation.
-const ModalWorkflow: React.FC<ModalWorkflowProps> = ({ wsData, onClose }) => {
+// ModalWorkflow component – displays workflow timeline or a loading indicator.
+const ModalWorkflow: React.FC<{ workflows: Workflow[]; onClose: () => void }> = ({ workflows, onClose }) => {
   useEffect(() => {
-    console.log("ModalWorkflow mounted with wsData:", wsData);
-  }, [wsData]);
+    console.log("ModalWorkflow mounted. Workflows:", workflows);
+  }, [workflows]);
 
-  let workflows: Workflow[] = [];
-  if (wsData) {
-    try {
-      const parsed = JSON.parse(wsData);
-      console.log("Parsed wsData:", parsed);
-      if (parsed && parsed.type && parsed.data) {
-        // Build two items: one for input receipt, one for current agent
-        workflows.push({
-          id: "input",
-          title: "Input Received",
-          detail: parsed.data.original || parsed.data.input || "",
-          status: "progress_started", // yellow dot
-        });
-        // The agent is processing:
-        workflows.push({
-          id: parsed.data.current_agent.id,
-          title: parsed.data.current_agent.name,
-          detail: parsed.data.current_agent.description,
-          status: "inProgress", // orange dot
-        });
-      }
-    } catch (error) {
-      console.error("Error parsing wsData:", error);
-    }
-  }
-  
-  // If there are no workflows (wsData not received or parsed), show a loading message.
   if (workflows.length === 0) {
     return (
       <ModalContent>
@@ -228,9 +215,7 @@ const ModalWorkflow: React.FC<ModalWorkflowProps> = ({ wsData, onClose }) => {
   return (
     <ModalContent>
       <CloseButton onClick={onClose}>&times;</CloseButton>
-      <WorkflowHeadingBanner>
-        Workflow Progress
-      </WorkflowHeadingBanner>
+      <WorkflowHeadingBanner>Workflow Progress</WorkflowHeadingBanner>
       <VerticalTimelineContainer>
         {workflows.map((wf, index) => (
           <TimelineItem key={index}>
@@ -249,7 +234,7 @@ const ModalWorkflow: React.FC<ModalWorkflowProps> = ({ wsData, onClose }) => {
 };
 
 /* ================================================
-   Modal Overlay – Popup that blurs background
+   Modal Overlay – Displays as a Popup with Background Blur
    ================================================ */
 const ModalOverlay = styled.div`
   position: fixed;
@@ -462,7 +447,7 @@ export const Styled = {
 };
 
 /* ================================================
-   HomeScreen Component – Main UI
+   HomeScreen Component – Displays the Initial UI
    ================================================ */
 function HomeScreen({
   walletAddress,
@@ -560,8 +545,8 @@ function HomeScreen({
             </Styled.PromptBar>
           </form>
           <Styled.ButtonRow>
-            {/* Navigation buttons (optional) */}
-            <Styled.ConnectButton onClick={openWorkflowModal}>
+            {/* Navigation buttons for extra options */}
+            <Styled.ConnectButton onClick={() => navigate("/dashboard")}>
               <LayoutDashboard size={18} />
               Dashboard
             </Styled.ConnectButton>
@@ -581,15 +566,18 @@ function HomeScreen({
 }
 
 /* ================================================
-   Main App Component – Puts Everything Together
+   Main App Component – Aggregates Everything
    ================================================ */
 function App() {
   const [walletAddress, setWalletAddress] = useState<string>("");
-  const [wsData, setWsData] = useState<string | null>(null);
+  // Accumulate workflow events from WS messages
+  const [workflowEvents, setWorkflowEvents] = useState<Workflow[]>([]);
   const [showWorkflowModal, setShowWorkflowModal] = useState<boolean>(false);
 
   const sendMessage = (message: string) => {
     console.log("Opening WebSocket to send message:", message);
+    // Clear previous workflow events before sending a new message.
+    setWorkflowEvents([]);
     const ws = new WebSocket("ws://localhost:8000/ws");
     ws.onopen = () => {
       console.log("WebSocket connection opened for sending message");
@@ -599,7 +587,97 @@ function App() {
     ws.onmessage = (event) => {
       const response = event.data;
       console.log("WebSocket message received:", response);
-      setWsData(response);
+      try {
+        const parsed = JSON.parse(response);
+        console.log("Parsed WS message:", parsed);
+        setWorkflowEvents((prev) => {
+          const newEvents = [...prev];
+          // For "progress_started", add the input event if not duplicate.
+          if (parsed.type === "progress_started") {
+            if (!newEvents.some((ev) => ev.id === "input")) {
+              newEvents.push({
+                id: "input",
+                title: "Input Received",
+                detail: parsed.data.original || parsed.data.input || "",
+                status: "progress_finished", // Input always green
+              });
+            }
+            // Delay adding the agent event by 300ms, if not duplicate.
+            setTimeout(() => {
+              setWorkflowEvents((current) => {
+                if (!current.some((ev) => ev.id === parsed.data.current_agent.id)) {
+                  return [
+                    ...current,
+                    {
+                      id: parsed.data.current_agent.id,
+                      title: parsed.data.current_agent.name,
+                      detail: parsed.data.current_agent.description,
+                      status: "inProgress",
+                    },
+                  ];
+                }
+                return current;
+              });
+            }, 300);
+          } else if (parsed.type === "progress_finished") {
+            // Update the agent event to progress_finished (green glow).
+            const idx = newEvents.findIndex(
+              (ev) => ev.id === parsed.data.current_agent.id
+            );
+            if (idx !== -1) {
+              newEvents[idx] = {
+                id: parsed.data.current_agent.id,
+                title: parsed.data.current_agent.name,
+                detail: parsed.data.current_agent.description,
+                status: "progress_finished",
+              };
+            } else {
+              newEvents.push({
+                id: parsed.data.current_agent.id,
+                title: parsed.data.current_agent.name,
+                detail: parsed.data.current_agent.description,
+                status: "progress_finished",
+              });
+            }
+          } else if (parsed.type === "response") {
+            // For a "response" event, avoid duplicates.
+            if (
+              !newEvents.some(
+                (ev) =>
+                  ev.id === "response" && ev.detail === parsed.data
+              )
+            ) {
+              newEvents.push({
+                id: "response",
+                title: "Response",
+                detail: parsed.data,
+                status: "response",
+              });
+              // Store all logs into Firebase when a "response" event is received.
+              import("firebase/firestore")
+                .then((module) => {
+                  const { getFirestore, collection, addDoc } = module;
+                  const db = getFirestore();
+                  return addDoc(collection(db, "logs"), {
+                    logs: newEvents,
+                    wallet: walletAddress,
+                    timestamp: new Date().toISOString(),
+                  });
+                })
+                .then(() => {
+                  console.log("Logs stored in Firebase.");
+                })
+                .catch((error) => {
+                  console.error("Error storing logs in Firebase:", error);
+                });
+            }
+          }
+          console.log("Updated workflowEvents:", newEvents);
+          return newEvents;
+        });
+      } catch (error) {
+        console.error("Error parsing WS message:", error);
+      }
     };
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
@@ -649,13 +727,14 @@ function App() {
               />
               {showWorkflowModal && (
                 <ModalOverlay>
-                  <ModalWorkflow wsData={wsData || undefined} onClose={closeWorkflowModal} />
+                  <ModalWorkflow workflows={workflowEvents} onClose={closeWorkflowModal} />
                 </ModalOverlay>
               )}
             </>
           }
         />
         <Route path="/universe" element={<Agents />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   );
