@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { BarChart, List, ArrowLeft, Home, Plus, X } from "lucide-react";
 import FocusGraph3D from "../components/FocusGraph3D";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import { collection, addDoc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebaseConfig"; // Adjust the path as needed
 
 // -------------------- ANIMATION & BACKGROUND EFFECTS -------------------- //
 
-// A very smooth fade-in and slide-up animation for the full-page Graph overlay.
 const fadeInUp = keyframes`
   0% {
     opacity: 0;
@@ -19,7 +18,6 @@ const fadeInUp = keyframes`
   }
 `;
 
-// Starry background effect using radial gradients.
 const starryBackground = `
   radial-gradient(white 1px, transparent 1px),
   radial-gradient(white 1px, transparent 1px)
@@ -106,14 +104,11 @@ const ControlButton = styled.button`
 
 const AgentListContainer = styled.div`
   width: 80%;
-  margin-top: 140px; /* Increased margin to avoid being stuck at the top */
+  margin-top: 140px;
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(250px, 1fr)
-  ); /* Grid layout */
-  gap: 1.5rem; /* Increased spacing between cards */
-  padding-bottom: 2rem; /* Add some bottom padding */
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding-bottom: 2rem;
 `;
 
 const AgentCard = styled.div<{ isExpanded: boolean }>`
@@ -121,38 +116,36 @@ const AgentCard = styled.div<{ isExpanded: boolean }>`
   border-radius: 10px;
   border: 2px solid transparent;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem 1.5rem 0 1.5rem; /* Remove bottom padding */
+  padding: 1.5rem 1.5rem 0 1.5rem;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative; /* For absolute positioning of the sparkline */
-  overflow: hidden; /* To keep the sparkline within the border radius */
-  aspect-ratio: 1/1; /* Make the card perfectly square */
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1/1;
 
   &:hover {
     transform: scale(1.05);
-    border: 2px solid #d8b4fe; /* Pink border highlight on hover */
+    border: 2px solid #d8b4fe;
   }
 
-  transform: ${(props) =>
-    props.isExpanded ? "scale(1.05)" : "scale(1)"}; /* Scale on click */
+  transform: ${(props) => (props.isExpanded ? "scale(1.05)" : "scale(1)")};
 `;
 
-// New card for creating an agent
 const CreateAgentCard = styled.div`
   background-color: #27272a;
   border-radius: 10px;
   border: 2px dotted rgba(127, 86, 217, 0.5);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem 1.5rem 0 1.5rem; /* Match AgentCard padding */
+  padding: 1.5rem 1.5rem 0 1.5rem;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
-  aspect-ratio: 1/1; /* Make the card perfectly square */
+  aspect-ratio: 1/1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative; /* For consistency with AgentCard */
-  overflow: hidden; /* For consistency with AgentCard */
+  position: relative;
+  overflow: hidden;
 
   &:hover {
     transform: scale(1.05);
@@ -197,10 +190,10 @@ const PerformanceMetrics = styled.div`
 
 const SparklineContainer = styled.div`
   position: absolute;
-  bottom: 0; /* Start from the bottom */
+  bottom: 0;
   left: 0;
   right: 0;
-  height: 50%; /* Take exactly half the card height */
+  height: 50%;
   width: 100%;
 `;
 
@@ -360,7 +353,7 @@ const GraphOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(ellipse at bottom,rgb(51, 42, 59) 0%, #090a0f 100%);
+  background: radial-gradient(ellipse at bottom, rgb(51, 42, 59) 0%, #090a0f 100%);
   animation: ${fadeInUp} 0.6s ease;
   z-index: 10;
   display: flex;
@@ -371,7 +364,7 @@ const GraphOverlay = styled.div`
 
 const ToggleSwitch = styled.div`
   position: fixed;
-  top: 70px; /* Positioned below header */
+  top: 70px;
   left: 50%;
   transform: translateX(-50%);
   width: 240px;
@@ -417,24 +410,19 @@ const SwitchCircle = styled.div<{ active: boolean }>`
 
 // -------------------- SPARKLINE COMPONENT -------------------- //
 
-// Simple sparkline implementation since we're not importing MUI Sparkline
-const Sparkline = ({ data, color }: { data: number[], color: string }) => {
-  // Create SVG path for the area chart
+const Sparkline = ({ data, color }) => {
   const width = 100;
-  const height = 100; // Using 100 for easier percentage calculations
+  const height = 100;
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
   
-  // Create path points - position in the top part of the bottom half
   const points = data.map((value, index) => {
     const x = (index / (data.length - 1)) * width;
-    // Position the chart line at about 40-45% from the top of the SVG (in the upper portion of bottom half)
     const y = (height * 0.4) + ((value - min) / range) * (height * 0.1);
     return `${x},${y}`;
   });
   
-  // Create separate paths - one for fill with gradient and one for stroke
   const fillPathD = `M0,${height} L0,${points[0].split(',')[1]} L${points.join(' L')} L${width},${points[points.length-1].split(',')[1]} L${width},${height} Z`;
   const strokePathD = `M${points.join(' L')}`;
   
@@ -468,42 +456,6 @@ const Sparkline = ({ data, color }: { data: number[], color: string }) => {
   );
 };
 
-// -------------------- MOCK DATA -------------------- //
-
-const agentsData = [
-  {
-    name: "Agent Alpha",
-    owner: "John Doe",
-    description: "An advanced AI assistant for handling complex tasks.",
-    timeCreated: "2023-01-15",
-    freqUsed: "1500 times",
-    performance: { speed: "90%", accuracy: "85%" },
-    sparklineData: [10, 15, 13, 17, 12, 14, 18, 15, 20, 18, 22],
-    sparklineColor: "#7f56d9"
-  },
-  {
-    name: "Agent Beta",
-    owner: "Jane Smith",
-    description:
-      "A reliable agent for customer support with fast response time.",
-    timeCreated: "2023-02-20",
-    freqUsed: "1000 times",
-    performance: { speed: "80%", accuracy: "90%" },
-    sparklineData: [5, 8, 12, 10, 14, 16, 13, 15, 18, 19, 17],
-    sparklineColor: "#7f56d9"
-  },
-  {
-    name: "Agent Gamma",
-    owner: "Michael Lee",
-    description: "A highly specialized agent for data analysis.",
-    timeCreated: "2023-03-10",
-    freqUsed: "1200 times",
-    performance: { speed: "70%", accuracy: "95%" },
-    sparklineData: [8, 10, 12, 14, 12, 16, 15, 17, 19, 20, 22],
-    sparklineColor: "#7f56d9"
-  },
-];
-
 // -------------------- SUCCESS NOTIFICATION -------------------- //
 
 const fadeInOut = keyframes`
@@ -532,18 +484,29 @@ const SuccessNotification = styled.div`
 // -------------------- MAIN COMPONENT -------------------- //
 
 const Agents: React.FC = () => {
-  // false: List view, true: Graph (3D universe) view.
+  // Toggle between List view (false) and Graph view (true)
   const [isDetailView, setIsDetailView] = useState(false);
-  // Track which agent card is expanded
-  const [expandedAgentIndex, setExpandedAgentIndex] = useState<number | null>(
-    null
-  );
-  // State for the new agent dialog
+  const [expandedAgentIndex, setExpandedAgentIndex] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAgentName, setNewAgentName] = useState("");
   const [newAgentDescription, setNewAgentDescription] = useState("");
-  // State for success notification
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Replace hardcoded agentsData with state that syncs with Firestore
+  const [agentsData, setAgentsData] = useState<any[]>([]);
+
+  // Fetch agents realtime from Firestore
+  useEffect(() => {
+    const agentsCollection = collection(db, "agents");
+    const unsubscribe = onSnapshot(agentsCollection, (snapshot) => {
+      const agents = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setAgentsData(agents);
+    });
+    return unsubscribe;
+  }, []);
 
   const toggleView = () => {
     setIsDetailView((prev) => !prev);
@@ -551,7 +514,7 @@ const Agents: React.FC = () => {
 
   const handleBack = () => {
     window.history.back();
-  };  
+  };
 
   const goToDashboard = () => {
     window.location.href = "/dashboard";
@@ -567,18 +530,19 @@ const Agents: React.FC = () => {
 
   const closeDialog = () => {
     setIsDialogOpen(false);
-    // Reset form fields when closing
     setNewAgentName("");
     setNewAgentDescription("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     const newAgent = {
       name: newAgentName,
       description: newAgentDescription,
-      owner: "CurrentUser", // Update as needed
+      owner: "CurrentUser", // Replace with the actual user information if available
       timeCreated: new Date().toISOString(),
+      // Optionally add default or computed properties (performance metrics, sparklineData, etc.)
     };
 
     try {
@@ -588,26 +552,21 @@ const Agents: React.FC = () => {
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error("Error adding document: ", error);
-      // Optionally, set an error state to display a message to the user
     }
   };
 
   return (
     <Container>
-      {/* Fixed Header with Back and Dashboard buttons */}
       <Header>
         <ControlButton onClick={handleBack}>
           <ArrowLeft size={18} /> Back
         </ControlButton>
-        <CenteredTitle>
-          {isDetailView ? "Universe" : "Available Agents"}
-        </CenteredTitle>
+        <CenteredTitle>{isDetailView ? "Universe" : "Available Agents"}</CenteredTitle>
         <ControlButton onClick={goToDashboard}>
           <Home size={18} /> Dashboard
         </ControlButton>
       </Header>
 
-      {/* Fixed Toggle Switch below the header */}
       <ToggleSwitch onClick={toggleView}>
         <SwitchCircle active={isDetailView} />
         <ToggleOption active={!isDetailView}>
@@ -618,21 +577,19 @@ const Agents: React.FC = () => {
         </ToggleOption>
       </ToggleSwitch>
 
-      {/* Render the Agent List when in List mode */}
+      {/* List View */}
       {!isDetailView && (
         <AgentListContainer>
-          {/* Create Agent Card */}
           <CreateAgentCard onClick={openDialog}>
             <PlusIconContainer>
               <Plus size={30} color="#d8b4fe" />
             </PlusIconContainer>
             <CreateAgentText>Create New Agent</CreateAgentText>
           </CreateAgentCard>
-          
-          {/* Existing Agent Cards */}
+
           {agentsData.map((agent, index) => (
             <AgentCard
-              key={index}
+              key={agent.id}
               isExpanded={expandedAgentIndex === index}
               onClick={() => toggleAgentExpanded(index)}
             >
@@ -640,32 +597,40 @@ const Agents: React.FC = () => {
               <AgentDescription>{agent.description}</AgentDescription>
               {expandedAgentIndex === index && (
                 <PerformanceMetrics>
-                  <p>
-                    <strong>Speed:</strong> {agent.performance.speed}
-                  </p>
-                  <p>
-                    <strong>Accuracy:</strong> {agent.performance.accuracy}
-                  </p>
+                  {agent.performance && (
+                    <>
+                      <p>
+                        <strong>Speed:</strong> {agent.performance.speed}
+                      </p>
+                      <p>
+                        <strong>Accuracy:</strong> {agent.performance.accuracy}
+                      </p>
+                    </>
+                  )}
                   <p>
                     <strong>Created:</strong> {agent.timeCreated}
                   </p>
-                  <p>
-                    <strong>Used:</strong> {agent.freqUsed}
-                  </p>
+                  {agent.freqUsed && (
+                    <p>
+                      <strong>Used:</strong> {agent.freqUsed}
+                    </p>
+                  )}
                 </PerformanceMetrics>
               )}
-              <SparklineContainer>
-                <Sparkline 
-                  data={agent.sparklineData} 
-                  color={agent.sparklineColor} 
-                />
-              </SparklineContainer>
+              {agent.sparklineData && agent.sparklineColor && (
+                <SparklineContainer>
+                  <Sparkline 
+                    data={agent.sparklineData} 
+                    color={agent.sparklineColor} 
+                  />
+                </SparklineContainer>
+              )}
             </AgentCard>
           ))}
         </AgentListContainer>
       )}
 
-      {/* Render full-page Graph overlay when in Graph mode */}
+      {/* Graph (3D Universe) View */}
       {isDetailView && (
         <GraphOverlay>
           <StarField />
@@ -673,7 +638,7 @@ const Agents: React.FC = () => {
         </GraphOverlay>
       )}
 
-      {/* Dialog for creating a new agent */}
+      {/* Create New Agent Dialog */}
       {isDialogOpen && (
         <DialogOverlay>
           <DialogContent>
@@ -709,19 +674,16 @@ const Agents: React.FC = () => {
                 <CancelButton type="button" onClick={closeDialog}>
                   Cancel
                 </CancelButton>
-                <SubmitButton type="submit">
-                  Create Agent
-                </SubmitButton>
+                <SubmitButton type="submit">Create Agent</SubmitButton>
               </ButtonContainer>
             </Form>
           </DialogContent>
         </DialogOverlay>
       )}
 
-      {/* Success notification */}
       {showSuccess && (
         <SuccessNotification>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="white"/>
           </svg>
           Agent created successfully!
