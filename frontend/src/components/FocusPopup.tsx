@@ -214,8 +214,8 @@ const StatsRadarChart: React.FC<StatsRadarChartProps> = ({ data }) => {
       })}
       <polygon
         points={points}
-        fill="rgba(216, 180, 254, 0.4)" // Light blue fill with transparency
-        stroke="#a855f7" // Light blue outline
+        fill="rgba(216, 180, 254, 0.4)" // Semi-transparent purple fill
+        stroke="#d8b4fe" // Solid purple outline
         strokeWidth="2"
       />
       {data.map((d, i) => {
@@ -293,16 +293,28 @@ const SciFiTagCard = styled.div`
   }
 `;
 
+// -------------------- HELPER FUNCTION TO GENERATE RANDOM DATA -------------------- //
+
+const getRandomInt = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
 // -------------------- MAIN POPUP COMPONENT -------------------- //
 
 const Popup = () => {
-  // Example radar data for the AI agent stats
-  const radarData = [
-    { label: "Relations", value: 427, maxValue: 500 },
-    { label: "Uptime", value: 99, maxValue: 100 },
-    { label: "Response", value: 75, maxValue: 100 },
-    { label: "Latency", value: 25, maxValue: 100 },
-  ];
+  // State for randomized radar data.
+  const [radarData, setRadarData] = useState<
+    { label: string; value: number; maxValue: number }[]
+  >([]);
+
+  useEffect(() => {
+    // Generate random data for each stat on mount.
+    setRadarData([
+      { label: "Relations", value: getRandomInt(300, 500), maxValue: 500 },
+      { label: "Uptime", value: getRandomInt(80, 100), maxValue: 100 },
+      { label: "Response", value: getRandomInt(50, 100), maxValue: 100 },
+      { label: "Latency", value: getRandomInt(10, 50), maxValue: 100 },
+    ]);
+  }, []);
 
   return (
     <Overlay>
@@ -313,10 +325,10 @@ const Popup = () => {
           <CardDetailOverlay>
             <DetailTitle>OpenAI Agent</DetailTitle>
             <StatItem>ID: 0xf66910ab</StatItem>
-            <StatItem>Relations: 427</StatItem>
-            <StatItem>Uptime: 99%</StatItem>
-            <StatItem>Response: 75ms</StatItem>
-            <StatItem>Latency: 25ms</StatItem>
+            <StatItem>Relations: {radarData[0]?.value || "..."}</StatItem>
+            <StatItem>Uptime: {radarData[1]?.value || "..."}%</StatItem>
+            <StatItem>Response: {radarData[2]?.value || "..."}ms</StatItem>
+            <StatItem>Latency: {radarData[3]?.value || "..."}ms</StatItem>
             {/* Radar chart displaying the stats */}
             <StatsRadarChart data={radarData} />
           </CardDetailOverlay>
