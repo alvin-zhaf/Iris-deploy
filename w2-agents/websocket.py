@@ -40,9 +40,8 @@ logger = logging.getLogger("websocket")
 async def background_loop():
     oracle.set_initial_block()
     while True:
-        logger.info(f"Polling...")
         await oracle.listen_for_contract_requests()
-        await asyncio.sleep(5)  # Simulate async work
+        await asyncio.sleep(0.2)
         
 @app.on_event("startup")
 async def start_background_loop():
@@ -53,7 +52,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     data = json.loads(await websocket.receive_text())
     try:
-        w3 = Web3(Web3.HTTPProvider(f"https://sepolia.infura.io/v3/{os.getenv('INFURA_API_KEY')}"))
+        w3 = Web3(Web3.HTTPProvider(f"https://eth-sepolia.g.alchemy.com/v2/{os.getenv('ALCHEMY_API_KEY')}"))
         logger.info("Connected to Web3 provider.")
     except Exception as e:
         logger.error(f"Failed to connect to Web3 provider: {e}")
