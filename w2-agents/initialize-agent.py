@@ -6,6 +6,7 @@ This script automatically initializes a set of predefined agents on startup.
 It can be run as part of a deployment process or system initialization.
 """
 
+import random
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -58,7 +59,12 @@ INITIAL_AGENTS = [
         "name": "Price Oracle",
         "description": "Provides real-time price data for various cryptocurrencies",
         "id": "price_oracle"
-    }
+    },
+	{
+		"name": "Risk Manager",
+		"description": "Manages risk and risk mitigation strategies for smart contracts",
+		"id": "risk_manager"
+	}
 ]
 
 # Load ABIs and connect to Web3
@@ -263,6 +269,15 @@ def get_wallet_credentials():
     
     return wallet_address, private_key
 
+def generate_random_sparkline_data() -> list:
+    """
+    Create a sparkline data array of random length (3–10 items),
+    each item a random integer between 0 and 50.
+    """
+    length = random.randint(3, 10)
+    return [random.randint(0, 50) for _ in range(length)]
+
+
 # Send transaction and wait for confirmation
 def send_transaction(w3, contract_function, wallet_address, private_key):
     try:
@@ -324,6 +339,8 @@ def initialize_agents():
         for agent_config in INITIAL_AGENTS:
             name = agent_config["name"]
             description = agent_config["description"]
+            color = "#C084FC"
+            sparkline_data = generate_random_sparkline_data()
             
             # Check if agent already exists
             exists, address = agent_exists(agent_factory, wallet_address, name)
@@ -331,7 +348,9 @@ def initialize_agents():
                 db.add_agent(agent_config["id"], {
                     "name": name,
                     "description": description,
-                    "address": address
+                    "address": address,
+                    "sparklineColor" : color,
+                    "sparklineData" : sparkline_data
                 })
                 logger.info(f"Agent '{name}' already exists at {address}")
                 continue
@@ -351,7 +370,9 @@ def initialize_agents():
                     db.add_agent(agent_config["id"], {
                         "name": name,
                         "description": description,
-                        "address": address
+                        "address": address,
+                        "sparklineColor" : color,
+                    	"sparklineData" : sparkline_data
                     })
                     logger.info(f"Agent '{name}' created successfully at {address}")
                 else:
