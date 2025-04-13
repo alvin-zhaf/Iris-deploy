@@ -6,7 +6,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import DeformCanvas from "../components/DeformCanvas";
-import { Orbit, Wallet, Send, LayoutDashboard } from "lucide-react";
+import { Globe, Orbit, Wallet, Send, LayoutDashboard } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -16,10 +16,9 @@ import {
 import Logo from "../assets/logo.svg";
 import styled, { keyframes, css } from "styled-components";
 import Agents from "./Agents";
-import Dashboard from "./Dashboard";
 
 /* ================================================
-   ModalWorkflow Component – Displays Workflow Timeline
+   ModalWorkflow Component – Popup showing Workflow Timeline
    ================================================ */
 interface Workflow {
   id: string;
@@ -33,7 +32,7 @@ interface ModalWorkflowProps {
   onClose: () => void;
 }
 
-// Keyframe animations for the status dots
+// Keyframe animations for dots
 const glow = keyframes`
   0% { box-shadow: 0 0 6px rgba(40, 167, 69, 0.4); }
   50% { box-shadow: 0 0 16px rgba(40, 167, 69, 0.8); }
@@ -41,9 +40,9 @@ const glow = keyframes`
 `;
 
 const pulseRing = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(255,165,0, 0.6); }
-  50% { box-shadow: 0 0 0 10px rgba(255,165,0, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255,165,0, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(255,165,0,0.6); }
+  50% { box-shadow: 0 0 0 10px rgba(255,165,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,165,0,0); }
 `;
 
 const flicker = keyframes`
@@ -60,7 +59,30 @@ const flicker = keyframes`
   100% { transform: translateX(0); }
 `;
 
-// Styled components for the workflow modal
+// Loading Animation: three dots
+const dotAnimation = keyframes`
+  0%, 20%, 40%, 100% { opacity: 0.2; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-5px); }
+`;
+
+const LoadingText = styled.div`
+  font-size: 1.2rem;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+`;
+
+const Dot = styled.span`
+  display: inline-block;
+  margin: 0 2px;
+  animation: ${dotAnimation} 1.4s infinite;
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.4s; }
+`;
+
+// Styled Components for the modal workflow UI
 const WorkflowHeadingBanner = styled.div`
   background-color: rgba(127,86,217,0.15);
   border: 1px solid rgba(127,86,217,0.5);
@@ -82,6 +104,7 @@ const TimelineItem = styled.div`
   margin-bottom: 2.5rem;
 `;
 
+// Updated TimelineDot: mapping statuses to colors
 const TimelineDot = styled.div<{ status: string }>`
   width: 24px;
   height: 24px;
@@ -95,28 +118,20 @@ const TimelineDot = styled.div<{ status: string }>`
   font-weight: bold;
   color: #000;
   background-color: ${({ status }) => {
-    switch (status) {
-      case "success":
-        return "#28a745";
-      case "inProgress":
-        return "#ffa500";
-      case "failure":
-        return "#dc3545";
-      default:
-        return "#777";
-    }
+    if (status === "progress_started") return "#FFC107"; // yellow for started
+    if (status === "progress_finished") return "#28a745"; // green for finished
+    if (status === "inProgress") return "#FFA500"; // orange for processing
+    if (status === "failure") return "#dc3545"; // red for failure
+    return "#777"; // fallback
   }};
   animation: ${({ status }) => {
-    switch (status) {
-      case "success":
-        return css`${glow} 2s infinite`;
-      case "inProgress":
-        return css`${pulseRing} 2s infinite`;
-      case "failure":
-        return css`${flicker} 0.7s infinite`;
-      default:
-        return "none";
-    }
+    if (status === "progress_started")
+      return css`${pulseRing} 2s infinite`;
+    if (status === "inProgress")
+      return css`${glow} 2s infinite`;
+    if (status === "failure")
+      return css`${flicker} 0.7s infinite`;
+    return "none";
   }};
   &:hover { transform: scale(1.15); }
 `;
@@ -142,7 +157,6 @@ const TimelineDetail = styled.p`
   color: #ccc;
 `;
 
-// Define ModalContent and CloseButton for the popup
 const ModalContent = styled.div`
   background: #0f0f0f;
   border-radius: 8px;
@@ -150,7 +164,7 @@ const ModalContent = styled.div`
   max-width: 1200px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.8);
   position: relative;
   padding: 1rem;
 `;
@@ -166,65 +180,61 @@ const CloseButton = styled.button`
   cursor: pointer;
 `;
 
-// ModalWorkflow component (workflow timeline inside the modal)
+// ModalWorkflow: If wsData is not available or if no workflow items can be built, show loading animation.
 const ModalWorkflow: React.FC<ModalWorkflowProps> = ({ wsData, onClose }) => {
   useEffect(() => {
     console.log("ModalWorkflow mounted with wsData:", wsData);
   }, [wsData]);
 
-  // Default dummy data if no wsData is provided
-  let workflows: Workflow[] = [
-    {
-      id: "KPD-136",
-      title: "Add text block with background",
-      detail: "CI #227: Pull request #236 by fsylum",
-      status: "success",
-    },
-    {
-      id: "KAP-23",
-      title: "Initial code for the hero full width block",
-      detail: "CI #242 ready_for_review by ridimova",
-      status: "inProgress",
-    },
-    {
-      id: "KPD-141",
-      title: "Main navigation",
-      detail: "CI #225 synchronize by joleenk",
-      status: "failure",
-    },
-    {
-      id: "AG-999",
-      title: "Additional agent check",
-      detail: "Not started or waiting for resources",
-      status: "pending",
-    },
-  ];
-
+  let workflows: Workflow[] = [];
   if (wsData) {
     try {
-      const parsedData = JSON.parse(wsData);
-      if (Array.isArray(parsedData)) {
-        workflows = parsedData;
-        console.log("Parsed workflows from wsData:", workflows);
+      const parsed = JSON.parse(wsData);
+      console.log("Parsed wsData:", parsed);
+      if (parsed && parsed.type && parsed.data) {
+        // Build two items: one for input receipt, one for current agent
+        workflows.push({
+          id: "input",
+          title: "Input Received",
+          detail: parsed.data.original || parsed.data.input || "",
+          status: "progress_started", // yellow dot
+        });
+        // The agent is processing:
+        workflows.push({
+          id: parsed.data.current_agent.id,
+          title: parsed.data.current_agent.name,
+          detail: parsed.data.current_agent.description,
+          status: "inProgress", // orange dot
+        });
       }
     } catch (error) {
       console.error("Error parsing wsData:", error);
     }
+  }
+  
+  // If there are no workflows (wsData not received or parsed), show a loading message.
+  if (workflows.length === 0) {
+    return (
+      <ModalContent>
+        <CloseButton onClick={onClose}>&times;</CloseButton>
+        <WorkflowHeadingBanner>Processing...</WorkflowHeadingBanner>
+        <LoadingText>
+          Processing<Dot>.</Dot><Dot>.</Dot><Dot>.</Dot>
+        </LoadingText>
+      </ModalContent>
+    );
   }
 
   return (
     <ModalContent>
       <CloseButton onClick={onClose}>&times;</CloseButton>
       <WorkflowHeadingBanner>
-        This workflow has a <strong>workflow_dispatch</strong> event trigger
+        Workflow Progress
       </WorkflowHeadingBanner>
       <VerticalTimelineContainer>
         {workflows.map((wf, index) => (
           <TimelineItem key={index}>
-            <TimelineDot
-              status={wf.status}
-              title={`${wf.id} - ${wf.title}\n${wf.detail}`}
-            >
+            <TimelineDot status={wf.status} title={`${wf.id} - ${wf.title}\n${wf.detail}`}>
               {index + 1}
             </TimelineDot>
             <TimelineContent>
@@ -239,7 +249,7 @@ const ModalWorkflow: React.FC<ModalWorkflowProps> = ({ wsData, onClose }) => {
 };
 
 /* ================================================
-   Modal Overlay Styling – Covers entire screen with blur
+   Modal Overlay – Popup that blurs background
    ================================================ */
 const ModalOverlay = styled.div`
   position: fixed;
@@ -322,7 +332,7 @@ export const Styled = {
     backdrop-filter: blur(12px);
     border-radius: 1.5rem;
     padding: 2rem;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
     width: 100%;
     max-width: 32rem;
     display: flex;
@@ -452,7 +462,7 @@ export const Styled = {
 };
 
 /* ================================================
-   HomeScreen Component – Initial UI
+   HomeScreen Component – Main UI
    ================================================ */
 function HomeScreen({
   walletAddress,
@@ -550,14 +560,18 @@ function HomeScreen({
             </Styled.PromptBar>
           </form>
           <Styled.ButtonRow>
-            {/* No separate Dashboard button is needed now, but kept for navigation if desired */}
-            <Styled.ConnectButton onClick={() => navigate("/dashboard")}>
+            {/* Navigation buttons (optional) */}
+            <Styled.ConnectButton onClick={openWorkflowModal}>
               <LayoutDashboard size={18} />
               Dashboard
             </Styled.ConnectButton>
             <Styled.ConnectButton onClick={() => navigate("/universe")}>
               <Orbit size={18} />
               Universe
+            </Styled.ConnectButton>
+            <Styled.ConnectButton onClick={() => navigate("/marketplace")}>
+              <Globe size={18} />
+              Marketplace
             </Styled.ConnectButton>
           </Styled.ButtonRow>
         </Styled.GlassmorphicContainer>
@@ -642,7 +656,6 @@ function App() {
           }
         />
         <Route path="/universe" element={<Agents />} />
-        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   );
