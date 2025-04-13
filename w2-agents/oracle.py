@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import time
+import random
 import db
 from rich.console import Console
 from rich.traceback import install
@@ -174,6 +176,8 @@ async def trigger_external_action(me, *args):
         next_name = response.choices[0].message.tool_calls[0].function.name
         console.print(f"[bold green]Next AI: {next_name}[/]")
         next_address = [agent["address"] for agent in agents if agent["id"] == next_name][0]
+        
+        time.sleep(0.3 + random.uniform(0, 0.7))
         await websocket.send_json({
             "type": "progress_finished",
             "data": {
