@@ -652,11 +652,11 @@ const Agents: React.FC = () => {
         ...doc.data(),
         // Add default performance metrics if not available
         performance: doc.data().performance || {
-          speed: "70%",
-          accuracy: "70%",
-          reliability: "70%",
-          efficiency: "70%",
-          learning: "70%"
+          speed: doc.data().speed,
+          accuracy: doc.data().accuracy,
+          reliability: doc.data().reliability,
+          efficiency: doc.data().efficiency,
+          learning: doc.data().learning
         },
         // Add default sparkline data if not available
         sparklineData: doc.data().sparklineData || [10, 12, 15, 13, 17, 14, 15, 16, 18, 17],
@@ -769,11 +769,11 @@ const Agents: React.FC = () => {
                 <RadarChart 
                   metrics={['Speed', 'Accuracy', 'Reliability', 'Efficiency', 'Learning']} 
                   values={[
-                    parseInt(agent.performance.speed.replace('%', '')) / 100,
-                    parseInt(agent.performance.accuracy.replace('%', '')) / 100,
-                    parseInt(agent.performance.reliability.replace('%', '')) / 100,
-                    parseInt(agent.performance.efficiency.replace('%', '')) / 100,
-                    parseInt(agent.performance.learning.replace('%', '')) / 100
+                    agent.performance.speed / 100,
+                    agent.performance.accuracy / 100,
+                    agent.performance.reliability / 100,
+                    agent.performance.efficiency / 100,
+                    agent.performance.learning / 100
                   ]}
                 />
               </RadarChartContainer>
