@@ -114,17 +114,17 @@ const AgentListContainer = styled.div`
 const AgentCard = styled.div<{ isExpanded: boolean }>`
   background-color: #27272a;
   border-radius: 10px;
-  border: 2px solid transparent;
+  border: 2px solid ${props => props.isExpanded ? "#d8b4fe" : "transparent"};
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem 1.5rem 0 1.5rem;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.4s ease, box-shadow 0.3s ease, border 0.3s ease;
   position: relative;
   overflow: hidden;
   aspect-ratio: 1/1;
 
   &:hover {
-    transform: scale(1.05);
+    transform: ${props => props.isExpanded ? "scale(1.05)" : "scale(1.03)"};
     border: 2px solid #d8b4fe;
   }
 
@@ -170,16 +170,28 @@ const CreateAgentText = styled.p`
   margin: 0;
 `;
 
-const AgentTitle = styled.h3`
+const AgentTitle = styled.h3<{ isExpanded: boolean }>`
   font-size: 1.2rem;
   margin-bottom: 1rem;
   color: #d8b4fe;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: ${props => props.isExpanded ? 0 : 1};
+  transform: translateY(${props => props.isExpanded ? -20 : 0}px);
+  height: ${props => props.isExpanded ? 0 : 'auto'};
+  margin: ${props => props.isExpanded ? 0 : '0 0 1rem 0'};
+  overflow: hidden;
 `;
 
-const AgentDescription = styled.p`
+const AgentDescription = styled.p<{ isExpanded: boolean }>`
   font-size: 0.9rem;
   margin-bottom: 1rem;
   color: #fff;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: ${props => props.isExpanded ? 0 : 1};
+  transform: translateY(${props => props.isExpanded ? -15 : 0}px);
+  height: ${props => props.isExpanded ? 0 : 'auto'};
+  margin: ${props => props.isExpanded ? 0 : '0 0 1rem 0'};
+  overflow: hidden;
 `;
 
 const PerformanceMetrics = styled.div`
@@ -188,13 +200,27 @@ const PerformanceMetrics = styled.div`
   margin-bottom: 1rem;
 `;
 
-const SparklineContainer = styled.div`
+// Add the radar chart container styled component
+const RadarChartContainer = styled.div<{ isExpanded: boolean }>`
+  height: 180px;
+  width: 180px; /* Ensure the radar chart has a fixed width */
+  margin: 10px auto auto auto; /* Center the radar chart horizontally */
+  opacity: ${props => props.isExpanded ? 1 : 0}; /* Fade in/out */
+  transition: opacity 0.6s ease; /* Smooth fade transition */
+  display: flex;
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+`;
+
+const SparklineContainer = styled.div<{ isExpanded: boolean }>`
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 50%;
   width: 100%;
+  opacity: ${props => props.isExpanded ? 0 : 1};
+  transition: opacity 0.3s ease;
 `;
 
 // -------------------- DIALOG STYLES -------------------- //
@@ -408,6 +434,128 @@ const SwitchCircle = styled.div<{ active: boolean }>`
   z-index: 1;
 `;
 
+// -------------------- RADAR CHART COMPONENT -------------------- //
+
+const RadarChart = ({ metrics, values }: { metrics: string[], values: number[] }) => {
+  const size = 180;
+  const radius = size * 0.4;
+  const centerX = size / 2;
+  const centerY = size / 2;
+  
+  // Calculate points for each metric on the radar
+  const calculatePoint = (value: number, index: number) => {
+    const angle = (Math.PI * 2 * index) / metrics.length - Math.PI / 2; // Start at top
+    const x = centerX + radius * value * Math.cos(angle);
+    const y = centerY + radius * value * Math.sin(angle);
+    return { x, y };
+  };
+
+  // Calculate points for the radar axes (from center to max)
+  const axisPoints = metrics.map((_, index) => {
+    const angle = (Math.PI * 2 * index) / metrics.length - Math.PI / 2;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    return { x, y };
+  });
+  
+  // Calculate points for the data values
+  const dataPoints = values.map((value, index) => calculatePoint(value, index));
+  
+  // Create path for the data polygon
+  let dataPath = '';
+  dataPoints.forEach((point, index) => {
+    dataPath += index === 0 ? `M${point.x},${point.y}` : ` L${point.x},${point.y}`;
+  });
+  dataPath += ' Z'; // Close the path
+  
+  // Create background circles for scale reference
+  const circles = [0.2, 0.4, 0.6, 0.8, 1].map(scale => ({
+    cx: centerX,
+    cy: centerY,
+    r: radius * scale
+  }));
+
+  return (
+    <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`}>
+      {/* Background circles */}
+      {circles.map((circle, i) => (
+        <circle
+          key={i}
+          cx={circle.cx}
+          cy={circle.cy}
+          r={circle.r}
+          fill="none"
+          stroke="#52525b"
+          strokeWidth="0.5"
+          opacity={0.3}
+        />
+      ))}
+      
+      {/* Axis lines */}
+      {axisPoints.map((point, i) => (
+        <line
+          key={i}
+          x1={centerX}
+          y1={centerY}
+          x2={point.x}
+          y2={point.y}
+          stroke="#52525b"
+          strokeWidth="0.5"
+          opacity={0.5}
+        />
+      ))}
+      
+      {/* Data polygon */}
+      <path
+        d={dataPath}
+        fill="#7f56d9"
+        fillOpacity="0.3"
+        stroke="#7f56d9"
+        strokeWidth="2"
+      />
+      
+      {/* Data points */}
+      {dataPoints.map((point, i) => (
+        <circle
+          key={i}
+          cx={point.x}
+          cy={point.y}
+          r={3}
+          fill="#d8b4fe"
+        />
+      ))}
+      
+      {/* Metric labels */}
+      {axisPoints.map((point, i) => {
+        // Adjust label position based on quadrant
+        const labelRadius = radius * 1.15;
+        const angle = (Math.PI * 2 * i) / metrics.length - Math.PI / 2;
+        const labelX = centerX + labelRadius * Math.cos(angle);
+        const labelY = centerY + labelRadius * Math.sin(angle);
+        
+        // Adjust text-anchor based on position
+        let textAnchor = "middle";
+        if (angle > -Math.PI * 0.25 && angle < Math.PI * 0.25) textAnchor = "start";
+        else if (angle > Math.PI * 0.75 || angle < -Math.PI * 0.75) textAnchor = "end";
+        
+        return (
+          <text
+            key={i}
+            x={labelX}
+            y={labelY}
+            textAnchor={textAnchor}
+            dominantBaseline="middle"
+            fill="#d8b4fe"
+            fontSize="10"
+          >
+            {metrics[i]}
+          </text>
+        );
+      })}
+    </svg>
+  );
+};
+
 // -------------------- SPARKLINE COMPONENT -------------------- //
 
 const Sparkline = ({ data, color }) => {
@@ -502,6 +650,17 @@ const Agents: React.FC = () => {
       const agents = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        // Add default performance metrics if not available
+        performance: doc.data().performance || {
+          speed: "70%",
+          accuracy: "70%",
+          reliability: "70%",
+          efficiency: "70%",
+          learning: "70%"
+        },
+        // Add default sparkline data if not available
+        sparklineData: doc.data().sparklineData || [10, 12, 15, 13, 17, 14, 15, 16, 18, 17],
+        sparklineColor: doc.data().sparklineColor || "#7f56d9"
       }));
       setAgentsData(agents);
     });
@@ -542,7 +701,16 @@ const Agents: React.FC = () => {
       description: newAgentDescription,
       owner: "CurrentUser", // Replace with the actual user information if available
       timeCreated: new Date().toISOString(),
-      // Optionally add default or computed properties (performance metrics, sparklineData, etc.)
+      // Add default performance metrics and sparkline data for new agents
+      performance: {
+        speed: "70%",
+        accuracy: "75%",
+        reliability: "80%",
+        efficiency: "65%",
+        learning: "60%"
+      },
+      sparklineData: [5, 8, 10, 12, 15, 13, 14, 16, 15, 17],
+      sparklineColor: "#7f56d9"
     };
 
     try {
@@ -593,32 +761,25 @@ const Agents: React.FC = () => {
               isExpanded={expandedAgentIndex === index}
               onClick={() => toggleAgentExpanded(index)}
             >
-              <AgentTitle>{agent.name}</AgentTitle>
-              <AgentDescription>{agent.description}</AgentDescription>
-              {expandedAgentIndex === index && (
-                <PerformanceMetrics>
-                  {agent.performance && (
-                    <>
-                      <p>
-                        <strong>Speed:</strong> {agent.performance.speed}
-                      </p>
-                      <p>
-                        <strong>Accuracy:</strong> {agent.performance.accuracy}
-                      </p>
-                    </>
-                  )}
-                  <p>
-                    <strong>Created:</strong> {agent.timeCreated}
-                  </p>
-                  {agent.freqUsed && (
-                    <p>
-                      <strong>Used:</strong> {agent.freqUsed}
-                    </p>
-                  )}
-                </PerformanceMetrics>
-              )}
+              <AgentTitle isExpanded={expandedAgentIndex === index}>{agent.name}</AgentTitle>
+              <AgentDescription isExpanded={expandedAgentIndex === index}>{agent.description}</AgentDescription>
+              
+              {/* Add Radar Chart */}
+              <RadarChartContainer isExpanded={expandedAgentIndex === index}>
+                <RadarChart 
+                  metrics={['Speed', 'Accuracy', 'Reliability', 'Efficiency', 'Learning']} 
+                  values={[
+                    parseInt(agent.performance.speed.replace('%', '')) / 100,
+                    parseInt(agent.performance.accuracy.replace('%', '')) / 100,
+                    parseInt(agent.performance.reliability.replace('%', '')) / 100,
+                    parseInt(agent.performance.efficiency.replace('%', '')) / 100,
+                    parseInt(agent.performance.learning.replace('%', '')) / 100
+                  ]}
+                />
+              </RadarChartContainer>
+              
               {agent.sparklineData && agent.sparklineColor && (
-                <SparklineContainer>
+                <SparklineContainer isExpanded={expandedAgentIndex === index}>
                   <Sparkline 
                     data={agent.sparklineData} 
                     color={agent.sparklineColor} 
